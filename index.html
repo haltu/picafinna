@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>PicaFinna Demo</title>
+    <link href="https://cdn.rawgit.com/twbs/bootstrap/v4-dev/dist/css/bootstrap.css" rel="stylesheet">
+    <link href="picafinna.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+      .header {
+        padding-right: 1rem;
+        padding-left: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: .05rem solid #e5e5e5;
+        margin-bottom: 2rem;
+      }
+      .header h3 {
+        margin-top: 0;
+        margin-bottom: 0;
+        line-height: 3rem;
+      }
+      @media (min-width: 48em) {
+        .container {
+          max-width: 46rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+
+      <div class="header">
+        <h3>PicaFinna Demo</h3>
+      </div>
+
+      <div class="jumbotron text-xs-center">
+        <p>
+          <button onclick="pickImage()" class="btn btn-lg btn-primary">Search Finna for an image</button>
+        </p>
+      </div>
+
+      <form>
+
+        <fieldset class="form-group">
+          <label for="imageform-title">Title</label>
+          <input id="imageform-title" name="title" class="form-control" />
+        </fieldset>
+
+        <fieldset class="form-group">
+          <label for="imageform-url">Image Url</label>
+          <input id="imageform-url" name="url" class="form-control" />
+        </fieldset>
+
+        <fieldset class="form-group">
+          <label for="imageform-pageurl">Page Url</label>
+          <input id="imageform-pageurl" name="pageurl" class="form-control" />
+        </fieldset>
+
+        <fieldset class="form-group">
+          <label for="imageform-license">License details</label>
+          <textarea id="imageform-license" name="license" class="form-control" rows="10"></textarea>
+        </fieldset>
+
+      </form>
+
+      <div class="text-xs-center">
+        &nbsp;&ndash;&nbsp;
+        <a href="http://haltu.fi" target="_blank">Haltu</a>
+        &nbsp;&ndash;&nbsp;
+        <a href="https://finna.fi" target="_blank">Finna</a>
+        &nbsp;&ndash;&nbsp;
+      </div>
+
+    </div>
+
+    <a href="https://github.com/haltu/picafinna"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
+    <script src="picafinna.min.js"></script>
+    <script>
+
+      function pickImage () {
+
+        document.body.style.overflow = 'hidden';
+
+        PicaFinna.pickImage(handleResult, {
+          initialQuery: 'kissa'
+        });
+
+      }
+
+      function handleResult (imageObj) {
+
+        var form = document.querySelector('form');
+
+        document.body.style.overflow = '';
+
+        if (imageObj) {
+
+          form.elements.title.value   = imageObj.title;
+          form.elements.url.value     = imageObj.url;
+          form.elements.pageurl.value = imageObj.pageUrl;
+          form.elements.license.value = imageObj.licenseDescription;
+
+        }
+        else {
+
+          console.log('Image picker was canceled.');
+
+        }
+
+      }
+    </script>
+
+  </body>
+</html>
