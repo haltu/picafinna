@@ -188,7 +188,7 @@ Move to the given page number, or to the next or previous page.
 **Examples**
 
 ```javascript
-picker.resetPicker();
+picker.setPage('next');
 ```
 
 
