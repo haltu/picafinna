@@ -33,6 +33,9 @@
   background: #eee;
   box-shadow: 0 0 20px rgba(0,0,0,.3);
 }
+.picafinna-detail .picafinna-outer-wrapper {
+  box-shadow: none;
+}
 
 
 /* Inner structure */
@@ -54,6 +57,16 @@
   width: 100%;
   height: 0;
   border-bottom: 1px solid #ddd;
+}
+.picafinna-close-details {
+  position: absolute;
+  top: -10px;
+  left: -21px;
+  height: 30px;
+  cursor: pointer;
+}
+.picafinna-close-details img {
+  height: 100%;
 }
 
 
@@ -82,7 +95,9 @@
 .picafinna-search-buttons-wrapper .picafinna-btn {
   margin-right: 14px;
 }
-
+.picafinna-search-filter-btn {
+  float: right;
+}
 
 /* Pagination */
 
@@ -170,6 +185,65 @@
   padding-right: 15px;
 }
 
+
+/* Details */
+
+.picafinna-details-container {
+  width: 100%;
+  height: 531px;
+  padding: 26px 0 0 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.picafinna-details-left-side,
+.picafinna-details-right-side {
+  float: left;
+  height: 100%;
+  width: 50%;
+  padding: 0 0 0 15px;
+}
+.picafinna-detail-image {
+  width: 100%;
+}
+.picafinna-detail-image-text {
+  color: #848484;
+  font-size: 12px;
+  margin: 0;
+}
+.picafinna-detail-title {
+  color: #00a3ad;
+  line-height: 20px;
+  font-weight: normal;
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.picafinna-detail-title a {
+  color: #00a3ad;
+}
+.picafinna-detail-paragraph {
+  font-size: 12px;
+}
+.picafinna-detail-meta dt,
+.picafinna-detail-meta dd {
+  font-weight: normal;
+  font-size: 12px;
+  margin: 0;
+  float: left;
+}
+.picafinna-detail-meta dt {
+  width: 30%;
+}
+.picafinna-detail-meta dd {
+  width: 70%;
+}
+.picafinna-detail-meta dl {
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
 
 /* IE<=10 Fix */
 

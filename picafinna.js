@@ -1,5 +1,5 @@
 /*!
-PicaFinna v1.0.1
+PicaFinna v1.1.3
 https://github.com/haltu/picafinna
 
 Copyright (c) 2016, Haltu Oy
@@ -51,6 +51,8 @@ SOFTWARE.
     this.parentElement = opts.parentElement || this.document.body;
     this.searchDebounceTime = opts.searchDebounceTime || 400;
     this.useJsonp = opts.useJsonp || true;
+    this.allowImagePick = opts.allowImagePick !== false;
+    this.allowPagePick = opts.allowPagePick !== false;
 
     this._createPickerDOM();
     this._attachListeners();
@@ -137,6 +139,10 @@ SOFTWARE.
    */
   PicaFinna.prototype.hidePicker = function hidePicker () {
 
+    try {
+      this.parentElement.removeChild(this._detailPageElement);
+    }
+    catch (e) {}
     try {
       this.parentElement.removeChild(this._containerElement);
     }
@@ -275,6 +281,89 @@ SOFTWARE.
 
   };
 
+  PicaFinna.prototype._createImageDetailDOM = function _createImageDetailDOM (imageObj) {
+
+    var containerElement = this.document.createElement('div');
+    var useImageButton = ''
+    var usePageButton = ''
+    var imageYear = ''
+    var imageCollections = ''
+    var imageMeasurements = ''
+    var imageSummary = ''
+
+    if (this.allowImagePick) {
+      useImageButton = '<button class="picafinna-use-image-btn btn">' + this._localize('Use image') + '</button><div class="picafinna-pagination-text"></div>';
+    }
+    if (this.allowPagePick) {
+      usePageButton = '<button class="picafinna-use-page-btn btn">' + this._localize('Use as material link') + '</button>';
+    }
+    if (imageObj.year) {
+      imageYear = ', ' + imageObj.year;
+    }
+    if (imageObj.organization) {
+      imageOrganization = '<dt>' + this._localize('Organization') + ':' + '</dt>' + '<dd>' + imageObj.organization + '</dd>';
+    }
+    if (imageObj.collections) {
+      imageCollections = '<dt>' + this._localize('Collections') + ':' + '</dt>' + '<dd>' + imageObj.collections + '</dd>';
+    }
+    if (imageObj.measurements) {
+      imageMeasurements = '<dt>' + this._localize('Measurements') + ':' + '</dt>' + '<dd>' + imageObj.measurements + '</dd>';
+    }
+    if (imageObj.summary) {
+      imageSummary = '<p class="picafinna-detail-paragraph">' + imageObj.summary + '</p>';
+    }
+
+    containerElement.className = 'picafinna picafinna-detail';
+    containerElement.style.zIndex = this.zIndex + 1;
+    containerElement.insertAdjacentHTML('afterbegin',
+      '<div class="picafinna-outer-wrapper">' +
+        '<div class="picafinna-wrapper">' +
+          '<span class="picafinna-close-details"><img src="data:image/svg+xml,' + encodeURIComponent(PicaFinna.ARROW_BACK) + '" /></span>' +
+          '<div class="picafinna-details-container">' +
+            '<div class="picafinna-details-left-side">' +
+              '<img class="picafinna-detail-image" src="' + imageObj.url + '"></img>' +
+              '<p class="picafinna-detail-image-text">' + imageObj.licenseDescription + '</p>' +
+            '</div>' +
+            '<div class="picafinna-details-right-side">' +
+              '<p class="picafinna-detail-image-text">' + imageObj.formats + imageYear + '</p>' +
+              '<h1 class="picafinna-detail-title" title="' + imageObj.title + '"><a href="' + imageObj.pageUrl + '">' + imageObj.title + '</a></h1>' +
+                imageSummary +
+              '<dl class="picafinna-detail-meta">' +
+                imageOrganization +
+                imageCollections +
+                imageMeasurements +
+              '</dl>' +
+            '</div>' +
+          '</div>' +
+          '<div class="picafinna-wrapper-row">' +
+            '<div class="picafinna-wrapper-cell">' +
+              '<div class="picafinna-divider-horizontal"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="picafinna-wrapper-row">' +
+            '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+              useImageButton +
+              usePageButton +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+
+    this._closeButtonElement = containerElement.querySelector('.picafinna-close-details');
+    this._useImageButton = containerElement.querySelector('.picafinna-use-image-btn');
+    this._usePageButton = containerElement.querySelector('.picafinna-use-page-btn');
+
+    this.imageObj = imageObj;
+
+    this.parentElement.appendChild(containerElement);
+
+    this._detailPageElement = containerElement;
+
+    this._attachDetailListeners();
+
+  };
+
   /**
    * Set loading status of the picker.
    *
@@ -309,6 +398,11 @@ SOFTWARE.
     var imageUrl = PicaFinna.API_BASE_URL + record.images[0];
     var imagePageUrl = 'https://finna.fi' + record.recordPage;
     var imageBuilding = record.buildings[0].translated;
+    var imageFormats = record.formats[0].translated;
+    var imageYear = record.year;
+    var imageCollections = record.collections;
+    var imageMeasurements = record.measurements;
+    var imageSummary = record.summary;
     var imageAuthor;
     var imageAttribution;
 
@@ -321,7 +415,7 @@ SOFTWARE.
 
     imageAttribution = imageAuthor;
     imageAttribution += '\n' + record.imageRights.copyright;
-    if (record.imageRights.copyright != record.imageRights.description[0]) {
+    if (record.imageRights.description && record.imageRights.copyright != record.imageRights.description[0]) {
       imageAttribution += ' \u2013 ' + record.imageRights.description[0];
     }
     imageAttribution += '\n' + imageBuilding;
@@ -330,6 +424,12 @@ SOFTWARE.
     imageObj.url = imageUrl || '';
     imageObj.pageUrl = imagePageUrl || '';
     imageObj.licenseDescription = imageAttribution || '';
+    imageObj.organization = imageBuilding || '';
+    imageObj.formats = imageFormats || '';
+    imageObj.year = imageYear || '';
+    imageObj.collections = imageCollections || '';
+    imageObj.measurements = imageMeasurements || '';
+    imageObj.summary = imageSummary || '';
 
     imageObj.url = imageObj.url.replace('&fullres=1', '&w=' + this.imageMaxDimensions.width + '&h=' + this.imageMaxDimensions.height);
 
@@ -342,10 +442,10 @@ SOFTWARE.
     resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
 
     resultAttributionElement.className = 'picafinna-result-attribution';
-    resultAttributionElement.setAttribute('title', imageAttribution);
-    resultAttributionElement.appendChild(this.document.createTextNode(imageAttribution));
+    resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
+    resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
 
-    resultItemElement.addEventListener('click', this._handleImagePicked.bind(this, imageObj), true);
+    resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
 
     return resultItemElement;
 
@@ -465,6 +565,24 @@ SOFTWARE.
 
   };
 
+  PicaFinna.prototype._attachDetailListeners = function _attachDetailListeners () {
+
+    this._closeButtonElement.addEventListener('click', closeDetailPage.bind(this), true);
+    if (this._useImageButton) {
+      this._useImageButton.addEventListener('click', this._handleImagePicked.bind(this, this.imageObj), true);
+    }
+    if (this._usePageButton) {
+      this._usePageButton.addEventListener('click', this._handlePagePicked.bind(this, this.imageObj), true);
+    }
+
+    function closeDetailPage (event) {
+
+      this.parentElement.removeChild(this._detailPageElement);
+
+    }
+
+  };
+
   /**
    * Query Finna API and display results.
    *
@@ -496,8 +614,7 @@ SOFTWARE.
       params = {
         'filter[]': [
           'online_boolean:"1"',
-          'format:"0/Image/"',
-          '-usage_rights_str_mv:usage_F'
+          'usage_rights_str_mv:usage_E'
         ],
         'field[]': [
           'title',
@@ -505,6 +622,11 @@ SOFTWARE.
           'images',
           'authors',
           'buildings',
+          'formats',
+          'year',
+          'collections',
+          'measurements',
+          'summary',
           'recordPage'
         ],
         'limit': this.resultsPerPage,
@@ -575,6 +697,24 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype._handleImagePicked = function _handleImagePicked (imageObj) {
+
+    if (imageObj) {
+      imageObj.pageUrl = '';
+    }
+
+    if (this._imagePickCallback) {
+      this._imagePickCallback(imageObj);
+    }
+
+    this.hidePicker();
+
+  };
+
+  PicaFinna.prototype._handlePagePicked = function _handlePagePicked (imageObj) {
+
+    if (imageObj) {
+      imageObj.url = '';
+    }
 
     if (this._imagePickCallback) {
       this._imagePickCallback(imageObj);
@@ -710,6 +850,7 @@ SOFTWARE.
 
   PicaFinna.API_BASE_URL = 'https://api.finna.fi';
   PicaFinna.LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112.2284 136.12848" width="112.23" height="136.13" style="fill: #00a3ad"><path d="M78.53 29.68l-17.07-8.5c-.24-.13-2.44-1.18-5.4-1.18-1.8 0-3.52.4-5.08 1.18l-17.07 8.5c-.2.1-5.46 2.8-5.46 8.83v31.36c0 .25.07 6.14 5.47 8.83L51 87.2c.25.12 2.44 1.17 5.4 1.17 1.8 0 3.52-.4 5.08-1.18l17.07-8.5c.23-.12 5.47-2.8 5.47-8.84V38.5c0-.24-.06-6.13-5.47-8.82m1.24 40.18c0 3.38-3 4.98-3.12 5.04l-17.07 8.5c-.98.5-2.05.73-3.2.73-1.98 0-3.5-.72-3.5-.72l-10.33-5.13 10.27-5.14c.87 1.17 2.26 1.94 3.83 1.94 2.64 0 4.78-2.14 4.78-4.78V55.36l1.24-.6c.53.5 1.24.83 2.03.83 1.6 0 2.93-1.32 2.93-2.93 0-1.62-1.32-2.93-2.93-2.93-1.6 0-2.93 1.3-2.93 2.93v.04l-1.93.98c-.38.2-.62.58-.62 1v11.58c-.46-.3-.96-.5-1.5-.63v-22.3l6.9-3.46c.52.44 1.2.7 1.9.7 1.63 0 2.94-1.3 2.94-2.92 0-1.6-1.3-2.93-2.93-2.93-1.6 0-2.93 1.32-2.93 2.93 0 .07 0 .14.02.2l-7.18 3.62c-.88-1.03-2.18-1.68-3.64-1.68-2.64 0-4.78 2.14-4.78 4.78V59.7l-1.55.77c-.48-.34-1.06-.54-1.7-.54-1.6 0-2.92 1.3-2.92 2.92 0 1.62 1.3 2.93 2.92 2.93 1.62 0 2.93-1.3 2.93-2.93 0-.15 0-.3-.04-.46l1.98-1c.38-.2.62-.58.62-1V48.6c.45.3.96.5 1.5.62v21.9l-11.73 5.87-4.23-2.1c-3.03-1.5-3.12-4.9-3.12-5.04V38.5c0-3.38 3-4.98 3.12-5.03l17.07-8.5c.97-.5 2.05-.73 3.2-.73 1.97 0 3.5.72 3.5.72l17.08 8.5c3.03 1.5 3.12 4.92 3.12 5.05v31.36zm-23.12-2.04c1.37 0 2.47 1.1 2.47 2.47 0 1.35-1.1 2.46-2.47 2.46-1.36 0-2.47-1.1-2.47-2.47 0-1.38 1.1-2.48 2.47-2.48m-1.18-2.15c-.53.13-1.02.35-1.46.64V49.2c.54-.14 1.03-.35 1.47-.65v17.12zm-2.67-18.6c-1.38 0-2.5-1.1-2.5-2.5 0-1.37 1.12-2.5 2.5-2.5s2.5 1.13 2.5 2.5c0 1.4-1.12 2.5-2.5 2.5m10.53 5.6c0-.76.62-1.37 1.37-1.37.75 0 1.37.6 1.37 1.37 0 .75-.62 1.36-1.37 1.36-.75 0-1.37-.6-1.37-1.36m1.84-15.02c0-.75.6-1.36 1.36-1.36.76 0 1.37.6 1.37 1.35 0 .76-.62 1.37-1.37 1.37-.75 0-1.36-.6-1.36-1.37m-19.03 25.2c0 .76-.6 1.37-1.37 1.37-.75 0-1.36-.6-1.36-1.37 0-.75.62-1.36 1.37-1.36.76 0 1.37.6 1.37 1.35" /><path d="M88.3 109.4h-3.06c.5-1.95 1.03-4.14 1.53-6 .5 1.86 1.02 4.05 1.52 6m3.88 5l-4.2-16.5c-.13-.6-.6-1-1.2-1-.62 0-1.1.4-1.22 1l-4.2 16.5c-.2.76.2 1.47.86 1.66.7.2 1.36-.22 1.55-.93.08-.23.13-.52.2-.83l.56-2.16H89c.2.88.42 1.62.56 2.16.07.3.12.6.2.83.2.7.85 1.13 1.56.93.66-.2 1.05-.9.86-1.67m-19.05 1.7c.55-.15.97-.7.97-1.34v-16.5c0-.76-.55-1.36-1.27-1.36-.7 0-1.26.6-1.26 1.37v10.52c-1.13-2.5-2.34-5.25-3.3-7.4-.6-1.3-1.14-2.5-1.67-3.73-.28-.57-.8-.88-1.4-.74-.62.14-1 .68-1 1.34v16.5c0 .75.57 1.35 1.28 1.35.7 0 1.26-.6 1.26-1.36v-10.52c1.08 2.47 2.34 5.23 3.3 7.4.6 1.27 1.14 2.5 1.67 3.7.24.58.82.9 1.43.75m-18.25 0c.55-.15.97-.7.97-1.34v-16.5c0-.76-.55-1.36-1.26-1.36-.7 0-1.27.6-1.27 1.37v10.52c-1.13-2.5-2.34-5.25-3.3-7.4-.6-1.3-1.14-2.5-1.67-3.73-.28-.57-.8-.88-1.42-.74-.6.14-.97.68-.97 1.34v16.5c0 .75.55 1.35 1.26 1.35.7 0 1.26-.6 1.26-1.36v-10.52c1.07 2.47 2.34 5.23 3.3 7.4.6 1.27 1.14 2.5 1.66 3.7.24.58.82.9 1.42.75m-18.53.02c.7 0 1.26-.6 1.26-1.36v-16.5c0-.76-.54-1.36-1.25-1.36-.7 0-1.26.6-1.26 1.37v16.5c0 .75.54 1.35 1.25 1.35m-15.1-.1c.72 0 1.27-.6 1.27-1.38v-7.05H26c.7 0 1.26-.6 1.26-1.37 0-.77-.56-1.37-1.27-1.37H22.5v-5.12h4c.7 0 1.26-.6 1.26-1.36 0-.77-.55-1.37-1.26-1.37h-5.26c-.7 0-1.26.6-1.26 1.38v16.26c0 .77.55 1.37 1.26 1.37" /></svg>';
+  PicaFinna.ARROW_BACK = '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="29" style="fill: #000"><path d="M 7.24923,21.750905 -0.00151152,14.451446 7.2727602,7.2257232 C 15.936113,-1.3798106 18,-1.9256431 18,4.3887091 c 0,4.2290091 0.128139,4.4127481 3.521381,5.0493241 3.980666,0.7467778 9.86293,5.4706758 12.029702,9.6607508 C 34.347987,20.639827 35,23.544644 35,25.553932 l 0,3.653252 -3.611091,-3.170579 C 27.394038,22.529061 24.08684,21 20.495266,21 c -2.021004,0 -2.420744,0.557079 -2.684901,3.741683 -0.195263,2.354047 -0.866659,3.846821 -1.810379,4.025182 -0.825008,0.155924 -4.762848,-3.001259 -8.750756,-7.01596 z" /></svg>';
   PicaFinna.locale = {};
   PicaFinna.locale.en = {
     'Search': 'Search',
