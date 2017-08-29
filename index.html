@@ -34,7 +34,7 @@
     <div class="container">
 
       <div class="header">
-        <h3>PicaFinna Demo</h3>
+        <h3>PicaFinna Demo: Modal</h3>
       </div>
 
       <div class="jumbotron text-xs-center">
@@ -67,6 +67,19 @@
 
       </form>
 
+
+    </div>
+
+    <hr noshade="noshade" style="color: #a2a2a2; background-color: #a2a2a2; margin-top: 60px;">
+
+    <div class="container" >
+
+      <div class="header">
+        <h3>PicaFinna Demo: Block-element</h3>
+      </div>
+
+      <div id="picafinna-block-demo"></div>
+
       <div class="text-xs-center">
         &nbsp;&ndash;&nbsp;
         <a href="http://haltu.fi" target="_blank">Haltu</a>
@@ -78,44 +91,43 @@
     </div>
 
     <a href="https://github.com/haltu/picafinna"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
-
-    <script src="picafinna.js"></script>
+    <script src="picafinna.js" type="text/javascript"></script>
     <script>
 
       function pickImage () {
-
-        document.body.style.overflow = 'hidden';
-
         PicaFinna.pickImage(handleResult, {
           initialQuery: 'Mannerheim',
           allowImagePick: true,
           allowPagePick: true
         });
-
       }
 
       function handleResult (imageObj) {
 
         var form = document.querySelector('form');
-
         document.body.style.overflow = '';
 
         if (imageObj) {
-
           form.elements.title.value   = imageObj.title;
           form.elements.url.value     = imageObj.url;
           form.elements.pageurl.value = imageObj.pageUrl;
           form.elements.license.value = imageObj.licenseDescription;
-
         }
         else {
-
           console.log('Image picker was canceled.');
-
         }
-
       }
     </script>
 
+    <script>
+      var picker2 = new PicaFinna({
+        parentElement: document.getElementById("picafinna-block-demo"),
+      });
+      picker2.pickImage(function handleResult (imageObj) {
+        console.log(imageObj);
+        document.body.style.overflow = '';
+      });
+
+    </script>
   </body>
 </html>
