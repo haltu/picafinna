@@ -278,3 +278,45 @@
   width: auto;
   height: auto;
 }
+
+
+
+
+/* Picafinna as block element */
+.picafinna-block {
+  position: static;
+  min-width: 400px;
+  min-height: 300px;
+}
+.picafinna-outer-wrapper-block {
+  position: static;
+  background: none;
+  box-shadow: none;
+  margin: auto;
+  max-width: 800px;
+  max-height: 600px;
+  width: 90%;
+  height: 90%;
+  float:left;
+}
+.picafinna-results-block {
+  height: 100%;
+  transition: opacity .5s;
+}
+.picafinna-result-list-wrapper-block {
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.picafinna-result-list-block {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 15px 0 0 15px;
+  overflow: auto;
+}
+
+ .picafinna-outer-wrapper-block .picafinna-search-field-wrapper{
+  padding-left: 15px;
+}

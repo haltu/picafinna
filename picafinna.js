@@ -207,59 +207,106 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype._createPickerDOM = function _createPickerDOM () {
-
-    var containerElement = this._containerElement = this.document.createElement('div');
-
-    containerElement.className = 'picafinna';
-    containerElement.style.zIndex = this.zIndex;
-    containerElement.insertAdjacentHTML('afterbegin',
-      '<div class="picafinna-overlay"></div>' +
-      '<div class="picafinna-outer-wrapper">' +
-        '<div class="picafinna-wrapper">' +
-          '<div class="picafinna-header picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper">' +
-              '<div class="picafinna-wrapper-row">' +
-                '<div class="picafinna-logo-wrapper picafinna-wrapper-cell">' +
-                  '<a href="https://finna.fi/" target="_blank" class="picafinna-logo-link">' +
-                    '<img class="picafinna-logo-image" src="data:image/svg+xml,' + encodeURIComponent(PicaFinna.LOGO_SVG) + '" />' +
-                  '</a>' +
+    if (this.parentElement != document.body){
+      var containerElement = this._containerElement = this.document.createElement('div');
+      containerElement.className = 'picafinna-block';
+      containerElement.insertAdjacentHTML('afterbegin',
+        '<div class="picafinna-outer-wrapper-block">' +
+          '<div class="picafinna-wrapper">' +
+            '<div class="picafinna-header picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper">' +
+                '<div class="picafinna-wrapper-row">' +
+                  '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
+                    '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                  '</div>' +
+                  '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
+                    '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
+                  '</div>' +
                 '</div>' +
-                '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
-                  '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-divider-horizontal"></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text"></div>' +
+                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-results-block picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-result-list-wrapper-block">' +
+                  '<div class="picafinna-result-list-block">' +
+                  '</div>' +
                 '</div>' +
-                '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
-                  '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
-                  '<button class="picafinna-btn picafinna-cancel-btn btn">' + this._localize('Cancel') + '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text"></div>' +
+                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+    else {
+      var containerElement = this._containerElement = this.document.createElement('div');
+      containerElement.className = 'picafinna picafinna-block';
+      containerElement.style.zIndex = this.zIndex;
+      containerElement.insertAdjacentHTML('afterbegin',
+        '<div class="picafinna-overlay"></div>' +
+        '<div class="picafinna-outer-wrapper">' +
+          '<div class="picafinna-wrapper">' +
+            '<div class="picafinna-header picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper">' +
+                '<div class="picafinna-wrapper-row">' +
+                  '<div class="picafinna-logo-wrapper picafinna-wrapper-cell">' +
+                    '<a href="https://finna.fi/" target="_blank" class="picafinna-logo-link">' +
+                      '<img class="picafinna-logo-image" src="data:image/svg+xml,' + encodeURIComponent(PicaFinna.LOGO_SVG) + '" />' +
+                    '</a>' +
+                  '</div>' +
+                  '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
+                    '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                  '</div>' +
+                  '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
+                    '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
+                    '<button class="picafinna-btn picafinna-cancel-btn btn">' + this._localize('Cancel') + '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-divider-horizontal"></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text"></div>' +
+                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-results picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-result-list-wrapper">' +
+                  '<div class="picafinna-result-list">' +
+                  '</div>' +
                 '</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
-          '<div class="picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper-cell">' +
-              '<div class="picafinna-divider-horizontal"></div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="picafinna-wrapper-row">' +
-            '<div class="picafinna-pagination picafinna-wrapper-cell">' +
-              '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
-              '<div class="picafinna-pagination-text"></div>' +
-              '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="picafinna-results picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper-cell">' +
-              '<div class="picafinna-result-list-wrapper">' +
-                '<div class="picafinna-result-list">' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    );
-
+        '</div>'
+      );
     this._overlayElement = containerElement.querySelector('.picafinna-overlay');
-
+    }
     // Search
     this._searchFieldElement = containerElement.querySelector('.picafinna-search-field');
     this._searchButtonElement = containerElement.querySelector('.picafinna-search-btn');
@@ -271,12 +318,19 @@ SOFTWARE.
     this._nextPageButtonElement = containerElement.querySelector('.picafinna-next-page-btn');
 
     // Results
-    this._resultListElement = containerElement.querySelector('.picafinna-result-list');
-
+    if (this.parentElement != document.body){
+      this._resultListElement = containerElement.querySelector('.picafinna-result-list-block');
+    }
+    else{
+      this._resultListElement = containerElement.querySelector('.picafinna-result-list');
+    }
     containerElement._setLoadingStatus = function _setLoadingStatus(isLoading) {
-
-      containerElement.className = isLoading ? 'picafinna picafinna-loading' : 'picafinna';
-
+      if (this.parentElement != document.body){
+        containerElement.className = isLoading ? 'picafinna-block picafinna-loading' : 'picafinna-block';
+      }
+      else{
+        containerElement.className = isLoading ? 'picafinna picafinna-loading' : 'picafinna';
+      }
     };
 
   };
@@ -526,8 +580,10 @@ SOFTWARE.
   PicaFinna.prototype._attachListeners = function _attachListeners () {
 
     this._debouncedSearchApiRequest = debounce(this._searchApiRequest, this.searchDebounceTime);
-    this._overlayElement.addEventListener('click', this.cancelPick.bind(this), true);
-    this._cancelButtonElement.addEventListener('click', this.cancelPick.bind(this), true);
+    if (this._overlayElement != undefined){
+      this._overlayElement.addEventListener('click', this.cancelPick.bind(this), true);
+      this._cancelButtonElement.addEventListener('click', this.cancelPick.bind(this), true);
+    }
     this._prevPageButtonElement.addEventListener('click', this.setPage.bind(this, 'prev'));
     this._nextPageButtonElement.addEventListener('click', this.setPage.bind(this, 'next'));
     this._searchButtonElement.addEventListener('click', handleSearchButtonClick.bind(this), true);
