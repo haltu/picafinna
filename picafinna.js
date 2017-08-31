@@ -225,11 +225,7 @@ SOFTWARE.
                 '</div>' +
               '</div>' +
             '</div>' +
-            '<div class="picafinna-wrapper-row">' +
-              '<div class="picafinna-wrapper-cell">' +
-                '<div class="picafinna-divider-horizontal"></div>' +
-              '</div>' +
-            '</div>' +
+            '<div class="picafinna-divider-horizontal"></div>' +
             '<div class="picafinna-wrapper-row">' +
               '<div class="picafinna-pagination picafinna-wrapper-cell">' +
                 '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
@@ -256,6 +252,7 @@ SOFTWARE.
         '</div>'
       );
     }
+
     else {
       var containerElement = this._containerElement = this.document.createElement('div');
       containerElement.className = 'picafinna picafinna-block';
@@ -289,9 +286,9 @@ SOFTWARE.
             '</div>' +
             '<div class="picafinna-wrapper-row">' +
               '<div class="picafinna-pagination picafinna-wrapper-cell">' +
-                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
-                '<div class="picafinna-pagination-text"></div>' +
-                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+                '<button class="picafinna-prev-page-btn btn" id="picafinna-prev-page-btn2">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text" id="picafinna-pagination-text2"></div>' +
+                '<button class="picafinna-next-page-btn btn" id="picafinna-next-page-btn2">' + this._localize('Next page') + '</button>' +
               '</div>' +
             '</div>' +
             '<div class="picafinna-results picafinna-wrapper-row">' +
@@ -313,9 +310,9 @@ SOFTWARE.
     this._cancelButtonElement = containerElement.querySelector('.picafinna-cancel-btn');
 
     // Pagination
-    this._paginationTextElement = containerElement.querySelector('.picafinna-pagination-text');
-    this._prevPageButtonElement = containerElement.querySelector('.picafinna-prev-page-btn');
-    this._nextPageButtonElement = containerElement.querySelector('.picafinna-next-page-btn');
+    this._paginationTextElements = containerElement.querySelectorAll('.picafinna-pagination-text');
+    this._prevPageButtonElements = containerElement.querySelectorAll('.picafinna-prev-page-btn')
+    this._nextPageButtonElements = containerElement.querySelectorAll('.picafinna-next-page-btn');
 
     // Results
     if (this.parentElement != document.body){
@@ -366,9 +363,8 @@ SOFTWARE.
     if (imageObj.summary) {
       imageSummary = '<p class="picafinna-detail-paragraph">' + imageObj.summary + '</p>';
     }
-
-    containerElement.className = 'picafinna picafinna-detail';
     containerElement.style.zIndex = this.zIndex + 1;
+    containerElement.className = 'picafinna picafinna-detail';
     containerElement.insertAdjacentHTML('afterbegin',
       '<div class="picafinna-outer-wrapper">' +
         '<div class="picafinna-wrapper">' +
@@ -448,6 +444,7 @@ SOFTWARE.
     var resultItemElement = this.document.createElement('div');
     var resultImageElement = this.document.createElement('img');
     var resultAttributionElement = this.document.createElement('div');
+    var resultLinkElement = this.document.createElement('a');
     var imageTitle = record.title;
     var imageUrl = PicaFinna.API_BASE_URL + record.images[0];
     var imagePageUrl = 'https://finna.fi' + record.recordPage;
@@ -486,20 +483,43 @@ SOFTWARE.
     imageObj.summary = imageSummary || '';
 
     imageObj.url = imageObj.url.replace('&fullres=1', '&w=' + this.imageMaxDimensions.width + '&h=' + this.imageMaxDimensions.height);
+    if (this.parentElement != document.body){
 
-    resultItemElement.className = 'picafinna-result-item';
-    resultItemElement.appendChild(resultImageElement);
-    resultItemElement.appendChild(resultAttributionElement);
-    resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
+      resultAttributionElement.className = 'picafinna-result-attribution-block';
+      resultAttributionElement.insertAdjacentHTML('afterbegin',
+      '<div class="picafinna-outer-wrapper-block">' +
+        '<a href="' + imageObj.pageUrl + '" alt="' + imageObj.title + '">' +
+          '<span class="result-tile-title-block">' + imageObj.title + ', ' + imageObj.year + '</span>'+
+        '</a></div>'
+      );
 
-    resultImageElement.className = 'picafinna-result-image';
-    resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+      resultItemElement.className = 'picafinna-result-item-block';
+      resultItemElement.appendChild(resultLinkElement)
+      resultItemElement.appendChild(resultAttributionElement);
+      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
 
-    resultAttributionElement.className = 'picafinna-result-attribution';
-    resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
-    resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
+      resultLinkElement.appendChild(resultImageElement);
+      resultLinkElement.href = imageObj.pageUrl;
 
-    resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
+      resultImageElement.className = 'picafinna-result-image';
+      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+    }
+    else{
+      resultItemElement.className = 'picafinna-result-item';
+
+      resultItemElement.appendChild(resultImageElement);
+      resultItemElement.appendChild(resultAttributionElement);
+      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
+
+      resultImageElement.className = 'picafinna-result-image';
+      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+
+      resultAttributionElement.className = 'picafinna-result-attribution';
+      resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
+      resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
+      resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
+    }
+
 
     return resultItemElement;
 
@@ -540,17 +560,23 @@ SOFTWARE.
     var pageCount = Math.ceil(resultCount / this.resultsPerPage);
     var firstResultOnThisPage = Math.min((currentPage - 1) * this.resultsPerPage + 1, resultCount);
     var lastResultOnThisPage = Math.min(currentPage * this.resultsPerPage, resultCount);
-
-    this._prevPageButtonElement.disabled = (currentPage <= 1) ? true : false;
-    this._nextPageButtonElement.disabled = (currentPage >= pageCount) ? true : false;
+    for ( i = 0; i < this._prevPageButtonElements.length; i++){
+      this._prevPageButtonElements[i].disabled = (currentPage <= 1) ? true : false;
+    }
+    for ( i = 0; i < this._nextPageButtonElements.length; i++){
+      this._nextPageButtonElements[i].disabled = (currentPage >=pageCount) ? true : false;
+    }
     if (resultCount == 0) {
-      this._paginationTextElement.innerHTML = this._localize('No search results');
+      for ( i = 0; i < this._paginationTextElements.length; i++){
+        this._paginationTextElements[i].innerHTML = this._localize('No search results');
+      }
     }
     else {
-      this._paginationTextElement.innerHTML = this._localize('Search results') + ' ' + (firstResultOnThisPage || '-') + ' - ' + (lastResultOnThisPage || '-') + ' / ' + (resultCount || '-');
+      for ( i = 0; i < this._paginationTextElements.length; i++){
+        this._paginationTextElements[i].innerHTML = this._localize('Search results') + ' ' + (firstResultOnThisPage || '-') + ' - ' + (lastResultOnThisPage || '-') + ' / ' + (resultCount || '-');
+      }
     }
     this._currentPageCount = pageCount;
-
   };
 
   /**
@@ -584,8 +610,14 @@ SOFTWARE.
       this._overlayElement.addEventListener('click', this.cancelPick.bind(this), true);
       this._cancelButtonElement.addEventListener('click', this.cancelPick.bind(this), true);
     }
-    this._prevPageButtonElement.addEventListener('click', this.setPage.bind(this, 'prev'));
-    this._nextPageButtonElement.addEventListener('click', this.setPage.bind(this, 'next'));
+
+    for (i = 0; i < this._prevPageButtonElements.length; i++){
+      this._prevPageButtonElements[0].addEventListener('click', this.setPage.bind(this, 'prev'));
+    }
+    for (i = 0; i < this._nextPageButtonElements.length; i++){
+      this._nextPageButtonElements[0].addEventListener('click', this.setPage.bind(this, 'next'));
+    }
+
     this._searchButtonElement.addEventListener('click', handleSearchButtonClick.bind(this), true);
     this._searchFieldElement.addEventListener('input', handleSearchFieldChanges.bind(this), true);
     this._searchFieldElement.addEventListener('keypress', handleSearchFieldEnter.bind(this), true);

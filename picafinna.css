@@ -289,15 +289,13 @@
   min-height: 300px;
 }
 .picafinna-outer-wrapper-block {
-  position: static;
   background: none;
   box-shadow: none;
   margin: auto;
   max-width: 800px;
-  max-height: 600px;
+  max-height: auto;
   width: 90%;
   height: 90%;
-  float:left;
 }
 .picafinna-results-block {
   height: 100%;
@@ -317,6 +315,37 @@
   overflow: auto;
 }
 
- .picafinna-outer-wrapper-block .picafinna-search-field-wrapper{
+.picafinna-outer-wrapper-block .picafinna-search-field-wrapper{
   padding-left: 15px;
+}
+.picafinna-result-item-block {
+  position: relative;
+  float: left;
+  margin: 0 15px 15px 0;
+  width: 130px;
+  height: 260px;
+  background-size: 130px 130px;
+  background-position: top top;
+  background-repeat: no-repeat;
+  border: 1px solid gray;
+}
+.picafinna-result-attribution-block {
+  width: 128px;
+  height: 130px;
+  padding: 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 6pt;
+}
+
+.result-tile-title-block{
+  font-size: 0.7rem;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+.picafinna-result-item-block > a > img{
+  width: 130px;
+  height: 130px;
+  display: block;
 }
