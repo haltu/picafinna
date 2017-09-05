@@ -297,6 +297,15 @@
   width: 90%;
   height: 90%;
 }
+
+.picafinna-wrapper-row-block{
+  text-align: center;
+  display: block;
+}
+
+.picafinna-pagination-wrapper-block{
+  text-align: center;
+}
 .picafinna-results-block {
   height: 100%;
   transition: opacity .5s;
@@ -318,34 +327,88 @@
 .picafinna-outer-wrapper-block .picafinna-search-field-wrapper{
   padding-left: 15px;
 }
+
+.picafinna-result-item-wrapper-block {
+  border: 1px solid gray;
+  height: 260px;
+  width: 132px;
+  margin: 0 15px 15px 0;
+  float: left;
+  padding: 0;
+}
+
 .picafinna-result-item-block {
   position: relative;
-  float: left;
-  margin: 0 15px 15px 0;
   width: 130px;
-  height: 260px;
-  background-size: 130px 130px;
-  background-position: top top;
-  background-repeat: no-repeat;
-  border: 1px solid gray;
-}
-.picafinna-result-attribution-block {
-  width: 128px;
   height: 130px;
-  padding: 0 2px;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.picafinna-result-attribution-block {
+  width: 130px;
+  height: 130px;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 6pt;
 }
 
-.result-tile-title-block{
-  font-size: 0.7rem;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-}
 .picafinna-result-item-block > a > img{
-  width: 130px;
-  height: 130px;
-  display: block;
+  width: 100%;
+  height: 100%;
+
+}
+
+.result-item-detail-block{
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  width: 100%;
+  display:block;
+}
+
+.result-item-title-block{
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  color: teal;
+  padding-top: 2px;
+  padding-bottom: 5px;
+}
+
+.result-item-license-block {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: rgba(1, 1, 1, 0.4);
+  color: #fff;
+}
+
+.result-item-organization-block {
+  font-size: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.result-item-summary-block {
+  font-size: 0.6rem;
+  height: 50px;
+  overflow: hidden;
+  color: #333;
+  text-transform: lowercase;
+
+}
+.result-item-collections-block {
+  font-size: 0.6rem;
+  height: 38px;
+  font-style: italic;
+  color: #888;
+  text-transform: lowercase;
+}
+
+.result-item-detail-block::first-letter {
+  text-transform: capitalize;
 }
