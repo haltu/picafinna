@@ -520,10 +520,10 @@ SOFTWARE.
       '<div class="picafinna-outer-wrapper-block">' +
         '<a href="' + imageObj.pageUrl + '" alt="' + imageObj.title + '">' +
           '<span class="result-item-detail-block result-item-title-block" title="' + imageObj.title + ', ' + imageObj.year + '">' + imageObj.title + ', ' + imageObj.year + '</span></a>'+
+          '<span class="result-item-detail-block result-item-license-block" title="' + imageObj.licenseDescription + '">' + imageObj.licenseDescription + '</span>'+
           '<span class="result-item-detail-block result-item-summary-block" title="' + imageSummary + '">' + imageSummaryPreview + '</span>'+
           '<span class="result-item-detail-block result-item-collections-block" title="' + collectionString + '">' + collectionStringPreview + '</span>'+
           '<span class="result-item-detail-block result-item-organization-block" title="' + imageObj.organization + '">' + imageObj.organization + '</span>'+
-          '<span class="result-item-detail-block result-item-license-block" title="' + imageObj.licenseDescription + '">' + imageObj.licenseDescription + '</span>'+
         '</div>'
       );
       resultItemWrapper.className = 'picafinna-result-item-wrapper-block';

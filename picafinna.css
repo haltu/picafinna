@@ -330,7 +330,7 @@
 
 .picafinna-result-item-wrapper-block {
   border: 1px solid gray;
-  height: 260px;
+  height: 280px;
   width: 132px;
   margin: 0 15px 15px 0;
   float: left;
@@ -348,7 +348,7 @@
 
 .picafinna-result-attribution-block {
   width: 130px;
-  height: 130px;
+  height: auto;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 6pt;
@@ -361,10 +361,11 @@
 }
 
 .result-item-detail-block{
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   width: 100%;
   display:block;
+  color: #333;
 }
 
 .result-item-title-block{
@@ -373,19 +374,16 @@
   overflow: hidden;
   color: teal;
   padding-top: 2px;
-  padding-bottom: 5px;
+  line-height: 14px;
 }
 
 .result-item-license-block {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 50%;
-  text-align: center;
+  font-size: 0.6rem;
+  width: 60%;
+  margin: 0 auto;
   white-space: nowrap;
   overflow: hidden;
-  background-color: rgba(1, 1, 1, 0.4);
-  color: #fff;
+  padding-bottom: 2px;
 }
 
 .result-item-organization-block {
@@ -397,7 +395,6 @@
   font-size: 0.6rem;
   height: 50px;
   overflow: hidden;
-  color: #333;
   text-transform: lowercase;
 
 }
