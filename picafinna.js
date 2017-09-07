@@ -53,6 +53,8 @@ SOFTWARE.
     this.useJsonp = opts.useJsonp || true;
     this.allowImagePick = opts.allowImagePick !== false;
     this.allowPagePick = opts.allowPagePick !== false;
+    this.summaryPreviewLength = opts.summaryPreviewLength || 40;
+    this.collectionPreviewLength = opts.collectionPreviewLength || 20;
 
     this._createPickerDOM();
     this._attachListeners();
@@ -461,9 +463,11 @@ SOFTWARE.
     var imageSummary = record.summary;
     var imageAuthor;
     var imageAttribution;
-    var summaryPreviewLength = 45;
+    // var summaryPreviewLength = 45;
+    var summaryPreviewLength = this.summaryPreviewLength;
+    var collectionPreviewLength = this.collectionPreviewLength;
     var collectionString = '';
-    var collectionStringLength = 25;
+    // var collectionStringLength = 25;
     var collectionStringPreview = '';
     try {
       imageAuthor = record.authors.main;
@@ -507,8 +511,8 @@ SOFTWARE.
 
       if (imageObj.collections != ""){
         collectionString = imageObj.collections.join(", ");
-        if(collectionString.length > collectionStringLength){
-          collectionStringPreview = collectionString.substring(0, collectionStringLength);
+        if(collectionString.length > collectionPreviewLength){
+          collectionStringPreview = collectionString.substring(0, collectionPreviewLength);
           collectionStringPreview = collectionStringPreview.concat('...');
         }
         else{
