@@ -461,9 +461,9 @@ SOFTWARE.
     var imageSummary = record.summary;
     var imageAuthor;
     var imageAttribution;
-    var summaryPreviewLength = 60;
+    var summaryPreviewLength = 45;
     var collectionString = '';
-    var collectionStringLength = 40;
+    var collectionStringLength = 25;
     var collectionStringPreview = '';
     try {
       imageAuthor = record.authors.main;
