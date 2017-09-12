@@ -432,16 +432,8 @@ SOFTWARE.
         }
       }
       resultAttributionElement.className = 'picafinna-result-attribution-block';
-      resultAttributionElement.insertAdjacentHTML('afterbegin',
-      '<div class="picafinna-outer-wrapper-block">' +
-        '<a href="' + imageObj.pageUrl + '" alt="' + imageObj.title + '">' +
-          '<span class="result-item-detail-block result-item-title-block" title="' + imageObj.title + ', ' + imageObj.year + '">' + imageObj.title + ', ' + imageObj.year + '</span></a>'+
-          '<span class="result-item-detail-block result-item-license-block" title="' + imageObj.licenseDescription + '">' + imageObj.licenseDescription + '</span>'+
-          '<span class="result-item-detail-block result-item-summary-block" title="' + imageSummary + '">' + imageSummaryPreview + '</span>'+
-          '<span class="result-item-detail-block result-item-collections-block" title="' + collectionString + '">' + collectionStringPreview + '</span>'+
-          '<span class="result-item-detail-block result-item-organization-block" title="' + imageObj.organization + '">' + imageObj.organization + '</span>'+
-        '</div>'
-      );
+      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
+
       resultItemWrapper.className = 'picafinna-result-item-wrapper-block';
       resultItemWrapper.appendChild(resultItemElement);
 
@@ -791,8 +783,8 @@ SOFTWARE.
   * @instance
   *
   */
-  PicaFinna.prototype._getHtmlTemplate = function _getHtmlTemplate (elemName) {
-    
+  PicaFinna.prototype._getHtmlTemplate = function _getHtmlTemplate (elemName, pageUrl='', title='',) {
+
     if (elemName == 'picafinna-block') {
       var htmlElement = '<div class="picafinna-outer-wrapper-block">' +
         '<div class="picafinna-wrapper">' +
@@ -887,6 +879,28 @@ SOFTWARE.
 
     return htmlElement;
   };
+
+  /**
+  * Initialize picafinna html elements
+  *
+  * @param {String} name of parent element (containerElement)
+  * @memberof Picafinna.prototype
+  * @private
+  * @instance
+  *
+  */
+  PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, summary, summaryPreview, collections, collectionsPreview, organization) {
+
+  var htmlElement = '<div class="picafinna-outer-wrapper-block">' +
+    '<a href="' + pageUrl + '" alt="' + title + '">' +
+      '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
+    '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + license + '</span>'+
+    '<span class="result-item-detail-block result-item-summary-block" title="' + summary + '">' + summaryPreview + '</span>'+
+    '<span class="result-item-detail-block result-item-collections-block" title="' + collections + '">' + collectionsPreview + '</span>'+
+    '<span class="result-item-detail-block result-item-organization-block" title="' + organization + '">' + organization + '</span>'+
+  '</div>';
+  return htmlElement;
+}
 
   /**
    * Returns a function, that, as long as it continues to be invoked, will not
