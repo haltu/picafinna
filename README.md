@@ -46,8 +46,8 @@ If you want to use Picafinna as block element, you can pass the parentElement.
 ```javascript
 var picker = new PicaFinna({
   parentElement: document.getElementById('your-parent-element'),
-  summaryPreviewLength: 60,
-  collectionPreviewLength: 20,
+  summaryPreviewMax: 60,
+  collectionPreviewMax: 20,
 });
 
 //Modifying preview lengths may need css changes
@@ -90,11 +90,11 @@ picker.pickImage(function handleResult (imageObj) {
 * **`useJsonp`** &nbsp;&mdash;&nbsp; *Boolean*
   * Default value: `true`.
   * If `true` JSONP is used instead of `XMLHttpRequest`. Currently the API does not support CORS.
-* **`summaryPreviewLength`** &nbsp;&mdash;&nbsp; *Number*
+* **`summaryPreviewMax`** &nbsp;&mdash;&nbsp; *Number*
   * Default value: `40`
   * Defines the length of summary text in picafinna block search results
   * Works only with block element picafinna
-* **`collectionPreviewLength`** &nbsp;&mdash;&nbsp; *Number*
+* **`collectionPreviewMax`** &nbsp;&mdash;&nbsp; *Number*
   * Default value: `20`
   * Defines the length of collection text in search results
   * Works only with block element picafinna

@@ -53,8 +53,8 @@ SOFTWARE.
     this.useJsonp = opts.useJsonp || true;
     this.allowImagePick = opts.allowImagePick !== false;
     this.allowPagePick = opts.allowPagePick !== false;
-    this.summaryPreviewLength = opts.summaryPreviewLength || 40;
-    this.collectionPreviewLength = opts.collectionPreviewLength || 20;
+    this.summaryPreviewMax = opts.summaryPreviewMax || 40;
+    this.collectionPreviewMax = opts.collectionPreviewMax || 20;
 
     this._createPickerDOM();
     this._attachListeners();
@@ -375,11 +375,9 @@ SOFTWARE.
     var imageSummary = record.summary;
     var imageAuthor;
     var imageAttribution;
-    // var summaryPreviewLength = 45;
-    var summaryPreviewLength = this.summaryPreviewLength;
-    var collectionPreviewLength = this.collectionPreviewLength;
+    var summaryPreviewMax = this.summaryPreviewMax;
+    var collectionPreviewMax = this.collectionPreviewMax;
     var collectionString = '';
-    // var collectionStringLength = 25;
     var collectionStringPreview = '';
     try {
       imageAuthor = record.authors.main;
@@ -408,47 +406,7 @@ SOFTWARE.
     imageObj.url = imageObj.url.replace('&fullres=1', '&w=' + this.imageMaxDimensions.width + '&h=' + this.imageMaxDimensions.height);
 
     if (this.parentElement != document.body){
-
-      if (imageSummary != undefined){
-          imageSummaryPreview = imageSummary.toString();
-
-        if (imageSummaryPreview.length > summaryPreviewLength){
-          imageSummaryPreview = imageSummaryPreview.substring(0, summaryPreviewLength);
-          imageSummaryPreview = imageSummaryPreview.concat('...');
-        }
-        else {
-          imageSummaryPreview = imageSummary;
-        }
-      }
-
-      if (imageObj.collections != ""){
-        collectionString = imageObj.collections.join(", ");
-        if(collectionString.length > collectionPreviewLength){
-          collectionStringPreview = collectionString.substring(0, collectionPreviewLength);
-          collectionStringPreview = collectionStringPreview.concat('...');
-        }
-        else{
-          collectionStringPreview = collectionString;
-        }
-      }
-      resultAttributionElement.className = 'picafinna-result-attribution-block';
-      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
-
-      resultItemWrapper.className = 'picafinna-result-item-wrapper-block';
-      resultItemWrapper.appendChild(resultItemElement);
-
-      resultItemElement.className = 'picafinna-result-item-block';
-      resultItemElement.appendChild(resultLinkElement)
-      resultItemElement.appendChild(resultAttributionElement);
-      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
-
-      resultLinkElement.appendChild(resultImageElement);
-      resultLinkElement.href = imageObj.pageUrl;
-
-      resultImageElement.className = 'picafinna-result-image';
-      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
-
-      return resultItemWrapper
+      return this._getResultItemWrapper(imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl);
     }
 
     else{
@@ -465,7 +423,7 @@ SOFTWARE.
       resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
       resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
       resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
-      
+
       return resultItemElement;
     }
   };
@@ -902,6 +860,65 @@ SOFTWARE.
   return htmlElement;
 }
 
+/**
+  * Initialize picafinna html elements
+  *
+  * @param {String} name of parent element (containerElement)
+  * @memberof Picafinna.prototype
+  * @private
+  * @instance
+  *
+  */
+  PicaFinna.prototype._getResultItemWrapper = function _getResultItemWrapper (imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl) {
+    var imageSummaryPreview = '';
+    var imageCollectionsPreview = '';
+    var resultAttributionElement = this.document.createElement('div');
+    var resultItemWrapper = this.document.createElement('div');
+    var resultItemElement = this.document.createElement('div');
+    var resultLinkElement = this.document.createElement('a');
+    var resultImageElement = this.document.createElement('img');
+
+      if (imageSummary != undefined){
+          imageSummaryPreview = imageSummary.toString();
+
+        if (imageSummaryPreview.length > summaryPreviewMax){
+          imageSummaryPreview = imageSummaryPreview.substring(0, summaryPreviewMax);
+          imageSummaryPreview = imageSummaryPreview.concat('...');
+        }
+        else {
+          imageSummaryPreview = imageSummary;
+        }
+      }
+
+      if (imageObj.collections != ""){
+        collectionString = imageObj.collections.join(", ");
+        if(collectionString.length > collectionPreviewMax){
+          collectionStringPreview = collectionString.substring(0, collectionPreviewMax);
+          collectionStringPreview = collectionStringPreview.concat('...');
+        }
+        else{
+          collectionStringPreview = collectionString;
+        }
+      }
+      resultAttributionElement.className = 'picafinna-result-attribution-block';
+      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
+
+      resultItemWrapper.className = 'picafinna-result-item-wrapper-block';
+      resultItemWrapper.appendChild(resultItemElement);
+
+      resultItemElement.className = 'picafinna-result-item-block';
+      resultItemElement.appendChild(resultLinkElement)
+      resultItemElement.appendChild(resultAttributionElement);
+      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
+
+      resultLinkElement.appendChild(resultImageElement);
+      resultLinkElement.href = imageObj.pageUrl;
+
+      resultImageElement.className = 'picafinna-result-image';
+      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+
+    return resultItemWrapper
+  }
   /**
    * Returns a function, that, as long as it continues to be invoked, will not
    * be triggered. The function will be called after it stops being called for
