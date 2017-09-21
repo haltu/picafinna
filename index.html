@@ -127,6 +127,9 @@
       var picker2 = new PicaFinna({
         parentElement: document.getElementById("picafinna-block-demo"),
         resultsPerPage: 8,
+        itemsLoadedCallback: function triggerLoadEvent(){
+          console.log("finna-loaded with triggerEvent!");
+        }
       });
       picker2.pickImage(function handleResult (imageObj) {
         console.log(imageObj);

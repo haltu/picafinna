@@ -55,6 +55,7 @@ SOFTWARE.
     this.allowPagePick = opts.allowPagePick !== false;
     this.summaryPreviewMax = opts.summaryPreviewMax || 40;
     this.collectionPreviewMax = opts.collectionPreviewMax || 20;
+    this.itemsLoadedCallback = opts.itemsLoadedCallback || noop;
 
     this._createPickerDOM();
     this._attachListeners();
@@ -180,7 +181,6 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype.setPage = function setPage (page) {
-
     var currentPage = this._currentPage;
     var pageCount = this._currentPageCount;
 
@@ -197,7 +197,6 @@ SOFTWARE.
     this._currentPage = page;
     this._updatePagination();
     this._searchApiRequest(this._searchFieldElement.value, page);
-
   };
 
   /**
@@ -529,13 +528,11 @@ SOFTWARE.
     function handleSearchFieldChanges (event) {
 
       this._debouncedSearchApiRequest(this._searchFieldElement.value);
-
     }
 
     function handleSearchButtonClick (event) {
 
       this._searchApiRequest(this._searchFieldElement.value);
-
     }
 
     function handleSearchFieldEnter (event) {
@@ -543,7 +540,6 @@ SOFTWARE.
       if (event.which == 13 || event.keyCode == 13) {
         this._searchApiRequest(this._searchFieldElement.value);
       }
-
     }
 
     function handleSearchFieldEsc (event) {
@@ -551,7 +547,6 @@ SOFTWARE.
       if (event.which == 27 || event.keyCode == 27) {
         this.cancelPick();
       }
-
     }
 
   };
@@ -675,6 +670,7 @@ SOFTWARE.
 
     this._currentResultCount = data.resultCount;
     this._updatePagination();
+    this.itemsLoadedCallback();
 
   };
 
@@ -872,6 +868,7 @@ SOFTWARE.
   PicaFinna.prototype._getResultItemWrapper = function _getResultItemWrapper (imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl) {
     var imageSummaryPreview = '';
     var imageCollectionsPreview = '';
+    var collectionString = '';
     var resultAttributionElement = this.document.createElement('div');
     var resultItemWrapper = this.document.createElement('div');
     var resultItemElement = this.document.createElement('div');

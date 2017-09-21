@@ -98,6 +98,9 @@ picker.pickImage(function handleResult (imageObj) {
   * Default value: `20`
   * Defines the length of collection text in search results
   * Works only with block element picafinna
+* ** `ìtemsLoadedCallback` ** &nbsp;&mdash;&nbsp; *function*
+  * By default calls function: `noop` that does nothing.
+  * The passed function will be executed everytime new items are loaded in finna.
 
 ## Methods
 
