@@ -364,7 +364,6 @@ SOFTWARE.
     var resultAttributionElement = this.document.createElement('div');
     var resultLinkElement = this.document.createElement('a');
     var imageTitle = record.title;
-    console.log(record.images);
     var imageUrl = PicaFinna.API_BASE_URL + record.images[0];
     var imagePageUrl = 'https://finna.fi' + record.recordPage;
     var imageBuilding = record.buildings[0].translated;
@@ -870,6 +869,7 @@ SOFTWARE.
     var imageSummaryPreview = '';
     var imageCollectionsPreview = '';
     var collectionString = '';
+    var collectionStringPreview = '';
     var resultAttributionElement = this.document.createElement('div');
     var resultItemWrapper = this.document.createElement('div');
     var resultItemElement = this.document.createElement('div');
