@@ -379,12 +379,15 @@ SOFTWARE.
     var collectionString = '';
     var collectionStringPreview = '';
     try {
-      imageAuthor = record.authors.main;
+      // imageAuthor = record.authors.main; //THIS IS WAITING FOR FINNA API FIX
+      imageAuthor = record.primaryAuthors;
+      if (imageAuthor == undefined){
+        imageAuthor = '';
+      }
     }
     catch(e) {
       imageAuthor = '';
     }
-
     imageAttribution = imageAuthor;
     imageAttribution += '\n' + record.imageRights.copyright;
     if (record.imageRights.description && record.imageRights.copyright != record.imageRights.description[0]) {
@@ -607,6 +610,7 @@ SOFTWARE.
           'imageRights',
           'images',
           'authors',
+          'primaryAuthors',
           'buildings',
           'formats',
           'year',
@@ -651,7 +655,6 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype._handleApiResponse = function _handleApiResponse (data) {
-
     var pageCount;
 
     this._setLoadingStatus(false);
@@ -659,7 +662,7 @@ SOFTWARE.
     if (data.records) {
       removeChildren(this._resultListElement);
       data.records.forEach(function handleRecord (record) {
-        if (record.images != undefined){
+        if (record.images != undefined && record.imageRights != undefined){
           this._resultListElement.appendChild(this._createResultItemDOM(record));
         }
       }, this);
