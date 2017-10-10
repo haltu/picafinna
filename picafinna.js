@@ -740,10 +740,13 @@ SOFTWARE.
   * @instance
   *
   */
-  PicaFinna.prototype._getHtmlTemplate = function _getHtmlTemplate (elemName, pageUrl='', title='',) {
+  PicaFinna.prototype._getHtmlTemplate = function _getHtmlTemplate (elemName, pageUrl, title) {
+
+    pageUrl = pageUrl || '';
+    title = title || '';
 
     if (elemName == 'picafinna-block') {
-      var htmlElement = '<div class="picafinna-outer-wrapper-block">' +
+      var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
         '<div class="picafinna-wrapper">' +
           '<div class="picafinna-header picafinna-wrapper-row">' +
             '<div class="picafinna-wrapper">' +
@@ -785,11 +788,11 @@ SOFTWARE.
             '</div>' +
           '</div>' +
         '</div>' +
-      '</div>'
+      '</div>');
     }
 
     else{
-      htmlElement = '<div class="picafinna-overlay"></div>' +
+      htmlElement = ('<div class="picafinna-overlay"></div>' +
         '<div class="picafinna-outer-wrapper">' +
           '<div class="picafinna-wrapper">' +
             '<div class="picafinna-header picafinna-wrapper-row">' +
@@ -831,7 +834,7 @@ SOFTWARE.
               '</div>' +
             '</div>' +
           '</div>' +
-        '</div>'
+        '</div>');
     }
 
     return htmlElement;
@@ -848,14 +851,14 @@ SOFTWARE.
   */
   PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, summary, summaryPreview, collections, collectionsPreview, organization) {
 
-  var htmlElement = '<div class="picafinna-outer-wrapper-block">' +
+  var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
     '<a href="' + pageUrl + '" alt="' + title + '">' +
       '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
     '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + license + '</span>'+
     '<span class="result-item-detail-block result-item-summary-block" title="' + summary + '">' + summaryPreview + '</span>'+
     '<span class="result-item-detail-block result-item-collections-block" title="' + collections + '">' + collectionsPreview + '</span>'+
     '<span class="result-item-detail-block result-item-organization-block" title="' + organization + '">' + organization + '</span>'+
-  '</div>';
+  '</div>');
   return htmlElement;
 }
 

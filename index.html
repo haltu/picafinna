@@ -129,7 +129,8 @@
         resultsPerPage: 8,
         itemsLoadedCallback: function triggerLoadEvent(){
           console.log("finna-loaded with triggerEvent!");
-        }
+        },
+        locale: 'fi'
       });
       picker2.pickImage(function handleResult (imageObj) {
         console.log(imageObj);
