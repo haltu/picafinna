@@ -851,6 +851,11 @@ SOFTWARE.
   */
   PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, summary, summaryPreview, collections, collectionsPreview, organization) {
 
+  if (summary == undefined || summaryPreview == undefined){
+    summaryPreview = ''
+    summary = ''
+  }
+
   var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
     '<a href="' + pageUrl + '" alt="' + title + '">' +
       '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
