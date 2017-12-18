@@ -603,7 +603,8 @@ SOFTWARE.
       params = {
         'filter[]': [
           'online_boolean:"1"',
-          'usage_rights_str_mv:usage_E'
+          'usage_rights_str_mv:usage_E',
+          'format:"0/Image/"',
         ],
         'field[]': [
           'title',
@@ -642,7 +643,6 @@ SOFTWARE.
       this._updatePagination();
       this._setStatusText(this._localize('#introduction-text'));
     }
-
   };
 
   /**
@@ -664,6 +664,9 @@ SOFTWARE.
       data.records.forEach(function handleRecord (record) {
         if (record.images != undefined && record.imageRights != undefined){
           this._resultListElement.appendChild(this._createResultItemDOM(record));
+        }
+        else{
+          console.log("No image or imageRights in record");
         }
       }, this);
     }
