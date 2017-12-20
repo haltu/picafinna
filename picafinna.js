@@ -77,7 +77,11 @@ SOFTWARE.
 
     this._imagePickCallback = callback;
     this._searchFieldElement.value = initialQuery || '';
-    this._searchApiRequest(this._searchFieldElement.value);
+    searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+    this._searchApiRequest(this._searchFieldElement.value, searchFilters);
     this.showPicker();
 
   };
@@ -194,9 +198,14 @@ SOFTWARE.
     page = Math.max(page, 1);
     page = Math.min(page, pageCount);
 
+    searchFilters = {
+      yearMin: this._searchFilterYearMin.value,
+      yearMax: this._searchFilterYearMax.value
+    };
+
     this._currentPage = page;
     this._updatePagination();
-    this._searchApiRequest(this._searchFieldElement.value, page);
+    this._searchApiRequest(this._searchFieldElement.value, searchFilters, page);
   };
 
   /**
@@ -225,6 +234,10 @@ SOFTWARE.
     this._searchFieldElement = containerElement.querySelector('.picafinna-search-field');
     this._searchButtonElement = containerElement.querySelector('.picafinna-search-btn');
     this._cancelButtonElement = containerElement.querySelector('.picafinna-cancel-btn');
+
+    //Filters
+    this._searchFilterYearMin = containerElement.querySelector('.picafinna-year-min');
+    this._searchFilterYearMax = containerElement.querySelector('.picafinna-year-max');
 
     // Pagination
     this._paginationTextElements = containerElement.querySelectorAll('.picafinna-pagination-text');
@@ -530,18 +543,30 @@ SOFTWARE.
 
     function handleSearchFieldChanges (event) {
 
-      this._debouncedSearchApiRequest(this._searchFieldElement.value);
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+      this._debouncedSearchApiRequest(this._searchFieldElement.value, searchFilters);
     }
 
     function handleSearchButtonClick (event) {
 
-      this._searchApiRequest(this._searchFieldElement.value);
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+      this._searchApiRequest(this._searchFieldElement.value, searchFilters);
     }
 
     function handleSearchFieldEnter (event) {
 
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
       if (event.which == 13 || event.keyCode == 13) {
-        this._searchApiRequest(this._searchFieldElement.value);
+        this._searchApiRequest(this._searchFieldElement.value, searchFilters);
       }
     }
 
@@ -582,12 +607,13 @@ SOFTWARE.
    * @instance
    *
    */
-  PicaFinna.prototype._searchApiRequest = function _searchApiRequest (query, page) {
+  PicaFinna.prototype._searchApiRequest = function _searchApiRequest (query, filters, page) {
 
     var responseHandler = this._handleApiResponse.bind(this);
     var request;
     var url;
     var params;
+    var searchFilters = validateFilters(filters)
 
     this._currentPage = page || 1;
 
@@ -624,6 +650,15 @@ SOFTWARE.
         'page': this._currentPage,
         'lookfor': query
       };
+
+      if (searchFilters.yearMin !== NaN && searchFilters.yearMax !== NaN){
+        yearFilterString = ('search_daterange_mv:"[' + 
+          searchFilters.yearMin + 
+          ' TO ' +
+          searchFilters.yearMax + ']"');
+        params['filter[]'].push(yearFilterString);
+      }
+
       url = PicaFinna.API_BASE_URL + '/v1/search?' + paramsToQueryString(params);
       if (this.useJsonp) {
         request = jsonpRequest(url, responseHandler);
@@ -756,9 +791,25 @@ SOFTWARE.
               '<div class="picafinna-wrapper-row-block">' +
                 '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
                   '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                  '<div class="filters col-12">' +
+                    '<div class="years col-12">' +
+                      '<div class="years-heading">' +
+                        '<span class=""><strong>' + this._localize('Filter years') + '</strong></span>' +
+                      '</div>' +
+                      '<div class="years-wrapper">' +
+                        '<table class="picafinna-years">' +
+                          '<tr><th>' + this._localize('min') + '</th>' +
+                          '<td><input type="number" class="picafinna-year-min" value="0" /></td>' +
+                          '<tr><th>' + this._localize('max') + '</th>' +
+                          '<td><input type="number" class="picafinna-year-max" value="2018" /></td>' +
+                        '</table>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
                 '</div>' +
                 '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
                   '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
+                  // '<button class="picafinna-btn picafinna-filters-btn btn">' + this._localize('Show filters') + '</button>' +
                 '</div>' +
               '</div>' +
             '</div>' +
@@ -808,6 +859,21 @@ SOFTWARE.
                   '</div>' +
                   '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
                     '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                    '<div class="filters col-12">' +
+                      '<div class="years col-12">' +
+                        '<div class="years-heading">' +
+                          '<span class=""><strong>' + this._localize('Filter years') + '</strong></span>' +
+                        '</div>' +
+                        '<div class="years-wrapper">' +
+                          '<table class="picafinna-years">' +
+                            '<tr><th>' + this._localize('min') + '</th>' +
+                            '<td><input type="number" class="picafinna-year-min" value="0" /></td>' +
+                            '<tr><th>' + this._localize('max') + '</th>' +
+                            '<td><input type="number" class="picafinna-year-max" value="2018" /></td>' +
+                          '</table>' +
+                        '</div>' +
+                      '</div>' +
+                    '</div>' +
                   '</div>' +
                   '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
                     '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
@@ -854,13 +920,13 @@ SOFTWARE.
   */
   PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, summary, summaryPreview, collections, collectionsPreview, organization) {
 
+  if (summary == undefined || summaryPreview == undefined){
+    summaryPreview = ['']
+    summary = ['']
+  }
+
   summary = replaceDoubleQuotes(summary);
   summaryPreview = replaceDoubleQuotes(summaryPreview);
-
-  if (summary == undefined || summaryPreview == undefined){
-    summaryPreview = ''
-    summary = ''
-  }
 
   var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
     '<a href="' + pageUrl + '" alt="' + title + '">' +
@@ -964,6 +1030,39 @@ SOFTWARE.
     };
   }
 
+// This function handles validating filters' values
+
+  function validateFilters(filters){
+    var validatedFilters = {yearMin: 0, yearMax: 0}
+    if (typeof filters === 'object' && filters.yearMin && filters.yearMax){
+      if (filters.yearMin){
+        validatedFilters.yearMin = validateYearFilter(filters.yearMin);
+      }
+      if (filters.yearMax){
+        validatedFilters.yearMax = validateYearFilter(filters.yearMax);
+      }
+    }
+    return validatedFilters;
+  }
+
+// This function checks if a year filter has correct number
+  function validateYearFilter(year){
+    currentYear = (new Date()).getFullYear();
+    validatedYear = parseInt(year);
+
+    if (validatedYear < 0){
+      validatedYear = NaN;
+      return validatedYear;
+    }
+    if (validatedYear > currentYear){
+      validatedYear = currentYear;
+      return validatedYear;
+    }
+    else{
+      return validatedYear;
+    }
+  }
+
   function noop () {}
 
   function removeChildren (element) {
@@ -1041,7 +1140,7 @@ SOFTWARE.
   }
 
   function replaceDoubleQuotes(old_summary){
-    fixed_summary = old_summary.replace('"',"'");
+    fixed_summary = old_summary[0].replace('"',"'");
     return fixed_summary;
   }
 
@@ -1058,8 +1157,12 @@ SOFTWARE.
     'No search results': 'No search results',
     'No images matching your query were found.': 'No images matching your query were found.',
     'Search query...': 'Search Finna for word...',
-    '#introduction-text': 'Find the relevant images from Finna materials provided by Finnish libraries, archives and museums.'
+    '#introduction-text': 'Find the relevant images from Finna materials provided by Finnish libraries, archives and museums.',
+    'Filter years': 'Filter years',
+    'min': 'Start year',
+    'max': 'End year',
   };
+
   PicaFinna.locale.fi = {
     'Search': 'Hae',
     'Cancel': 'Peruuta',
@@ -1069,7 +1172,10 @@ SOFTWARE.
     'No search results': 'Ei hakutuloksia',
     'No images matching your query were found.': 'Hakua vastaavia kuvia ei l\u00F6ytynyt.',
     'Search query...': 'Etsi hakusanalla Finnasta...',
-    '#introduction-text': 'L\u00F6yd\u00E4 tarvitsemasi kuvat Finnan kuva-aineistoista. K\u00E4ytett\u00E4viss\u00E4si ovat Suomen museoiden, kirjastojen ja arkistojen aarteet!'
+    '#introduction-text': 'L\u00F6yd\u00E4 tarvitsemasi kuvat Finnan kuva-aineistoista. K\u00E4ytett\u00E4viss\u00E4si ovat Suomen museoiden, kirjastojen ja arkistojen aarteet!',
+    'Filter years': 'Suodata vuosiluvulla',
+    'min': 'Alkaen',
+    'max': 'P\u00E4\u00E4ttyen',
   };
 
 

@@ -409,3 +409,18 @@
 .result-item-detail-block::first-letter {
   text-transform: capitalize;
 }
+
+.picafinna-year{
+  float: left;
+}
+.picafinna-filters-btn{
+  margin-top: 5px;
+}
+
+.picafinna-search-btn, .picafinna-filters-btn{
+  border: 2px solid white;
+}
+
+.picafinna-search-btn:hover, .picafinna-filters-btn:hover{
+  border: 2px solid #ddd;
+}
