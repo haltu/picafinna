@@ -306,7 +306,7 @@ SOFTWARE.
             '</div>' +
             '<div class="picafinna-details-right-side">' +
               '<p class="picafinna-detail-image-text">' + imageObj.formats + imageYear + '</p>' +
-              '<h1 class="picafinna-detail-title" title="' + imageObj.title + '"><a href="' + imageObj.pageUrl + '">' + imageObj.title + '</a></h1>' +
+              '<h1 class="picafinna-detail-title" target="_blank" title="' + imageObj.title + '"><a target="_blank"href="' + imageObj.pageUrl + '">' + imageObj.title + '</a></h1>' +
                 imageSummary +
               '<dl class="picafinna-detail-meta">' +
                 imageOrganization +
@@ -701,7 +701,7 @@ SOFTWARE.
           this._resultListElement.appendChild(this._createResultItemDOM(record));
         }
         else{
-          console.log("No image or imageRights in record");
+          console.log("No image or imageRights in record, skipping..");
         }
       }, this);
     }
@@ -929,7 +929,7 @@ SOFTWARE.
   summaryPreview = replaceDoubleQuotes(summaryPreview);
 
   var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
-    '<a href="' + pageUrl + '" alt="' + title + '">' +
+    '<a href="' + pageUrl + '" target="_blank" alt="' + title + '">' +
       '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
     '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + license + '</span>'+
     '<span class="result-item-detail-block result-item-summary-block" title="' + summary + '">' + summaryPreview + '</span>'+
@@ -994,6 +994,7 @@ SOFTWARE.
 
       resultLinkElement.appendChild(resultImageElement);
       resultLinkElement.href = imageObj.pageUrl;
+      resultLinkElement.target = "_blank";
 
       resultImageElement.className = 'picafinna-result-image';
       resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
