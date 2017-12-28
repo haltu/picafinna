@@ -392,7 +392,8 @@ SOFTWARE.
     var collectionString = '';
     var collectionStringPreview = '';
     try {
-      // imageAuthor = record.authors.main; //THIS IS WAITING FOR FINNA API FIX
+      // imageAuthor = record.authors.main; 
+      //todo: THIS IS WAITING FOR FINNA API FIX
       imageAuthor = record.primaryAuthors;
       if (imageAuthor == undefined){
         imageAuthor = '';
@@ -401,6 +402,7 @@ SOFTWARE.
     catch(e) {
       imageAuthor = '';
     }
+
     imageAttribution = imageAuthor;
     imageAttribution += '\n' + record.imageRights.copyright;
     if (record.imageRights.description && record.imageRights.copyright != record.imageRights.description[0]) {
@@ -408,6 +410,12 @@ SOFTWARE.
     }
     imageAttribution += '\n' + imageBuilding;
 
+    if(imageAuthor != ''){
+      imageObj.shortLicense = imageAuthor + ", " + record.imageRights.copyright || '';
+    }
+    else{
+      imageObj.shortLicense = record.imageRights.copyright || '';
+    }
     imageObj.title = imageTitle || '';
     imageObj.url = imageUrl || '';
     imageObj.pageUrl = imagePageUrl || '';
@@ -421,6 +429,7 @@ SOFTWARE.
     imageObj.url = imageObj.url.replace('&fullres=1', '&w=' + this.imageMaxDimensions.width + '&h=' + this.imageMaxDimensions.height);
 
     if (this.parentElement != document.body){
+
       return this._getResultItemWrapper(imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl);
     }
 
@@ -440,6 +449,8 @@ SOFTWARE.
       resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
 
       return resultItemElement;
+
+
     }
   };
 
@@ -918,7 +929,7 @@ SOFTWARE.
   * @instance
   *
   */
-  PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, summary, summaryPreview, collections, collectionsPreview, organization) {
+  PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, shortLicense, summary, summaryPreview, collections, collectionsPreview, organization) {
 
   if (summary == undefined || summaryPreview == undefined){
     summaryPreview = ['']
@@ -931,7 +942,7 @@ SOFTWARE.
   var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
     '<a href="' + pageUrl + '" target="_blank" alt="' + title + '">' +
       '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
-    '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + license + '</span>'+
+    '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + shortLicense + '</span>'+
     '<span class="result-item-detail-block result-item-summary-block" title="' + summary + '">' + summaryPreview + '</span>'+
     '<span class="result-item-detail-block result-item-collections-block" title="' + collections + '">' + collectionsPreview + '</span>'+
     '<span class="result-item-detail-block result-item-organization-block" title="' + organization + '">' + organization + '</span>'+
@@ -982,7 +993,7 @@ SOFTWARE.
         }
       }
       resultAttributionElement.className = 'picafinna-result-attribution-block';
-      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
+      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageObj.shortLicense, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
 
       resultItemWrapper.className = 'picafinna-result-item-wrapper-block';
       resultItemWrapper.appendChild(resultItemElement);
