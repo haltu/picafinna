@@ -641,7 +641,10 @@ SOFTWARE.
         'filter[]': [
           'online_boolean:"1"',
           'usage_rights_str_mv:usage_E',
-          'format:"0/Image/"',
+          '~format:"0/Image/"',
+          '~format:"0/PhysicalObject/"',
+          '~format:"0/WorkOfArt/"',
+          '~format:"0/Place/"'
         ],
         'field[]': [
           'title',
