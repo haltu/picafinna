@@ -53,6 +53,9 @@ SOFTWARE.
     this.useJsonp = opts.useJsonp || true;
     this.allowImagePick = opts.allowImagePick !== false;
     this.allowPagePick = opts.allowPagePick !== false;
+    this.summaryPreviewMax = opts.summaryPreviewMax || 40;
+    this.collectionPreviewMax = opts.collectionPreviewMax || 20;
+    this.itemsLoadedCallback = opts.itemsLoadedCallback || noop;
 
     this._createPickerDOM();
     this._attachListeners();
@@ -74,7 +77,11 @@ SOFTWARE.
 
     this._imagePickCallback = callback;
     this._searchFieldElement.value = initialQuery || '';
-    this._searchApiRequest(this._searchFieldElement.value);
+    searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+    this._searchApiRequest(this._searchFieldElement.value, searchFilters);
     this.showPicker();
 
   };
@@ -123,7 +130,6 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype.showPicker = function showPicker () {
-
     this.parentElement.appendChild(this._containerElement);
     this._searchFieldElement.select();
 
@@ -178,7 +184,6 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype.setPage = function setPage (page) {
-
     var currentPage = this._currentPage;
     var pageCount = this._currentPageCount;
 
@@ -192,10 +197,14 @@ SOFTWARE.
     page = Math.max(page, 1);
     page = Math.min(page, pageCount);
 
+    searchFilters = {
+      yearMin: this._searchFilterYearMin.value,
+      yearMax: this._searchFilterYearMax.value
+    };
+
     this._currentPage = page;
     this._updatePagination();
-    this._searchApiRequest(this._searchFieldElement.value, page);
-
+    this._searchApiRequest(this._searchFieldElement.value, searchFilters, page);
   };
 
   /**
@@ -207,76 +216,48 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype._createPickerDOM = function _createPickerDOM () {
+    if (this.parentElement != document.body){
+      var containerElement = this._containerElement = this.document.createElement('div');
+      containerElement.className = 'picafinna-block';
+      containerElement.insertAdjacentHTML('afterbegin', this._getHtmlTemplate(containerElement.className));
+    }
 
-    var containerElement = this._containerElement = this.document.createElement('div');
-
-    containerElement.className = 'picafinna';
-    containerElement.style.zIndex = this.zIndex;
-    containerElement.insertAdjacentHTML('afterbegin',
-      '<div class="picafinna-overlay"></div>' +
-      '<div class="picafinna-outer-wrapper">' +
-        '<div class="picafinna-wrapper">' +
-          '<div class="picafinna-header picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper">' +
-              '<div class="picafinna-wrapper-row">' +
-                '<div class="picafinna-logo-wrapper picafinna-wrapper-cell">' +
-                  '<a href="https://finna.fi/" target="_blank" class="picafinna-logo-link">' +
-                    '<img class="picafinna-logo-image" src="data:image/svg+xml,' + encodeURIComponent(PicaFinna.LOGO_SVG) + '" />' +
-                  '</a>' +
-                '</div>' +
-                '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
-                  '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
-                '</div>' +
-                '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
-                  '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
-                  '<button class="picafinna-btn picafinna-cancel-btn btn">' + this._localize('Cancel') + '</button>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper-cell">' +
-              '<div class="picafinna-divider-horizontal"></div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="picafinna-wrapper-row">' +
-            '<div class="picafinna-pagination picafinna-wrapper-cell">' +
-              '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
-              '<div class="picafinna-pagination-text"></div>' +
-              '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="picafinna-results picafinna-wrapper-row">' +
-            '<div class="picafinna-wrapper-cell">' +
-              '<div class="picafinna-result-list-wrapper">' +
-                '<div class="picafinna-result-list">' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    );
-
-    this._overlayElement = containerElement.querySelector('.picafinna-overlay');
-
+    else {
+      var containerElement = this._containerElement = this.document.createElement('div');
+      containerElement.className = 'picafinna';
+      containerElement.style.zIndex = this.zIndex;
+      containerElement.insertAdjacentHTML('afterbegin', this._getHtmlTemplate(containerElement.className));
+      this._overlayElement = containerElement.querySelector('.picafinna-overlay');
+    }
     // Search
     this._searchFieldElement = containerElement.querySelector('.picafinna-search-field');
     this._searchButtonElement = containerElement.querySelector('.picafinna-search-btn');
     this._cancelButtonElement = containerElement.querySelector('.picafinna-cancel-btn');
 
+    //Filters
+    this._searchFilterYearMin = containerElement.querySelector('.picafinna-year-min');
+    this._searchFilterYearMax = containerElement.querySelector('.picafinna-year-max');
+
     // Pagination
-    this._paginationTextElement = containerElement.querySelector('.picafinna-pagination-text');
-    this._prevPageButtonElement = containerElement.querySelector('.picafinna-prev-page-btn');
-    this._nextPageButtonElement = containerElement.querySelector('.picafinna-next-page-btn');
+    this._paginationTextElements = containerElement.querySelectorAll('.picafinna-pagination-text');
+    this._prevPageButtonElements = containerElement.querySelectorAll('.picafinna-prev-page-btn');
+    this._nextPageButtonElements = containerElement.querySelectorAll('.picafinna-next-page-btn');
+    this._paginationElements = containerElement.querySelectorAll('.picafinna-pagination-wrapper-block');
 
     // Results
-    this._resultListElement = containerElement.querySelector('.picafinna-result-list');
-
+    if (this.parentElement != document.body){
+      this._resultListElement = containerElement.querySelector('.picafinna-result-list-block');
+    }
+    else{
+      this._resultListElement = containerElement.querySelector('.picafinna-result-list');
+    }
     containerElement._setLoadingStatus = function _setLoadingStatus(isLoading) {
-
-      containerElement.className = isLoading ? 'picafinna picafinna-loading' : 'picafinna';
-
+      if (this.parentElement != document.body){
+        containerElement.className = isLoading ? 'picafinna-block picafinna-loading' : 'picafinna-block';
+      }
+      else{
+        containerElement.className = isLoading ? 'picafinna picafinna-loading' : 'picafinna';
+      }
     };
 
   };
@@ -312,9 +293,8 @@ SOFTWARE.
     if (imageObj.summary) {
       imageSummary = '<p class="picafinna-detail-paragraph">' + imageObj.summary + '</p>';
     }
-
-    containerElement.className = 'picafinna picafinna-detail';
     containerElement.style.zIndex = this.zIndex + 1;
+    containerElement.className = 'picafinna picafinna-detail';
     containerElement.insertAdjacentHTML('afterbegin',
       '<div class="picafinna-outer-wrapper">' +
         '<div class="picafinna-wrapper">' +
@@ -326,7 +306,7 @@ SOFTWARE.
             '</div>' +
             '<div class="picafinna-details-right-side">' +
               '<p class="picafinna-detail-image-text">' + imageObj.formats + imageYear + '</p>' +
-              '<h1 class="picafinna-detail-title" title="' + imageObj.title + '"><a href="' + imageObj.pageUrl + '">' + imageObj.title + '</a></h1>' +
+              '<h1 class="picafinna-detail-title" target="_blank" title="' + imageObj.title + '"><a target="_blank"href="' + imageObj.pageUrl + '">' + imageObj.title + '</a></h1>' +
                 imageSummary +
               '<dl class="picafinna-detail-meta">' +
                 imageOrganization +
@@ -392,8 +372,10 @@ SOFTWARE.
 
     var imageObj = {};
     var resultItemElement = this.document.createElement('div');
+    var resultItemWrapper = this.document.createElement('div');
     var resultImageElement = this.document.createElement('img');
     var resultAttributionElement = this.document.createElement('div');
+    var resultLinkElement = this.document.createElement('a');
     var imageTitle = record.title;
     var imageUrl = PicaFinna.API_BASE_URL + record.images[0];
     var imagePageUrl = 'https://finna.fi' + record.recordPage;
@@ -405,9 +387,17 @@ SOFTWARE.
     var imageSummary = record.summary;
     var imageAuthor;
     var imageAttribution;
-
+    var summaryPreviewMax = this.summaryPreviewMax;
+    var collectionPreviewMax = this.collectionPreviewMax;
+    var collectionString = '';
+    var collectionStringPreview = '';
     try {
-      imageAuthor = record.authors.main;
+      // imageAuthor = record.authors.main; 
+      //todo: THIS IS WAITING FOR FINNA API FIX
+      imageAuthor = record.primaryAuthors;
+      if (imageAuthor == undefined){
+        imageAuthor = '';
+      }
     }
     catch(e) {
       imageAuthor = '';
@@ -420,6 +410,12 @@ SOFTWARE.
     }
     imageAttribution += '\n' + imageBuilding;
 
+    if(imageAuthor != ''){
+      imageObj.shortLicense = imageAuthor + ", " + record.imageRights.copyright || '';
+    }
+    else{
+      imageObj.shortLicense = record.imageRights.copyright || '';
+    }
     imageObj.title = imageTitle || '';
     imageObj.url = imageUrl || '';
     imageObj.pageUrl = imagePageUrl || '';
@@ -430,25 +426,32 @@ SOFTWARE.
     imageObj.collections = imageCollections || '';
     imageObj.measurements = imageMeasurements || '';
     imageObj.summary = imageSummary || '';
-
     imageObj.url = imageObj.url.replace('&fullres=1', '&w=' + this.imageMaxDimensions.width + '&h=' + this.imageMaxDimensions.height);
 
-    resultItemElement.className = 'picafinna-result-item';
-    resultItemElement.appendChild(resultImageElement);
-    resultItemElement.appendChild(resultAttributionElement);
-    resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
+    if (this.parentElement != document.body){
 
-    resultImageElement.className = 'picafinna-result-image';
-    resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+      return this._getResultItemWrapper(imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl);
+    }
 
-    resultAttributionElement.className = 'picafinna-result-attribution';
-    resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
-    resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
+    else{
+      resultItemElement.className = 'picafinna-result-item';
 
-    resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
+      resultItemElement.appendChild(resultImageElement);
+      resultItemElement.appendChild(resultAttributionElement);
+      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
 
-    return resultItemElement;
+      resultImageElement.className = 'picafinna-result-image';
+      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
 
+      resultAttributionElement.className = 'picafinna-result-attribution';
+      resultAttributionElement.setAttribute('title', imageObj.title + ' ' + imageObj.year);
+      resultAttributionElement.appendChild(this.document.createTextNode(imageObj.title + ' ' + imageObj.year));
+      resultItemElement.addEventListener('click', this._createImageDetailDOM.bind(this, imageObj), true);
+
+      return resultItemElement;
+
+
+    }
   };
 
   /**
@@ -486,17 +489,23 @@ SOFTWARE.
     var pageCount = Math.ceil(resultCount / this.resultsPerPage);
     var firstResultOnThisPage = Math.min((currentPage - 1) * this.resultsPerPage + 1, resultCount);
     var lastResultOnThisPage = Math.min(currentPage * this.resultsPerPage, resultCount);
-
-    this._prevPageButtonElement.disabled = (currentPage <= 1) ? true : false;
-    this._nextPageButtonElement.disabled = (currentPage >= pageCount) ? true : false;
+    for ( i = 0; i < this._prevPageButtonElements.length; i++){
+      this._prevPageButtonElements[i].disabled = (currentPage <= 1) ? true : false;
+    }
+    for ( i = 0; i < this._nextPageButtonElements.length; i++){
+      this._nextPageButtonElements[i].disabled = (currentPage >=pageCount) ? true : false;
+    }
     if (resultCount == 0) {
-      this._paginationTextElement.innerHTML = this._localize('No search results');
+      for ( i = 0; i < this._paginationTextElements.length; i++){
+        this._paginationTextElements[i].innerHTML = this._localize('No search results');
+      }
     }
     else {
-      this._paginationTextElement.innerHTML = this._localize('Search results') + ' ' + (firstResultOnThisPage || '-') + ' - ' + (lastResultOnThisPage || '-') + ' / ' + (resultCount || '-');
+      for ( i = 0; i < this._paginationTextElements.length; i++){
+        this._paginationTextElements[i].innerHTML = this._localize('Search results') + ' ' + (firstResultOnThisPage || '-') + ' - ' + (lastResultOnThisPage || '-') + ' / ' + (resultCount || '-');
+      }
     }
     this._currentPageCount = pageCount;
-
   };
 
   /**
@@ -526,10 +535,18 @@ SOFTWARE.
   PicaFinna.prototype._attachListeners = function _attachListeners () {
 
     this._debouncedSearchApiRequest = debounce(this._searchApiRequest, this.searchDebounceTime);
-    this._overlayElement.addEventListener('click', this.cancelPick.bind(this), true);
-    this._cancelButtonElement.addEventListener('click', this.cancelPick.bind(this), true);
-    this._prevPageButtonElement.addEventListener('click', this.setPage.bind(this, 'prev'));
-    this._nextPageButtonElement.addEventListener('click', this.setPage.bind(this, 'next'));
+    if (this._overlayElement != undefined){
+      this._overlayElement.addEventListener('click', this.cancelPick.bind(this), true);
+      this._cancelButtonElement.addEventListener('click', this.cancelPick.bind(this), true);
+    }
+
+    for (i = 0; i < this._prevPageButtonElements.length; i++){
+      this._prevPageButtonElements[i].addEventListener('click', this.setPage.bind(this, 'prev'));
+    }
+    for (i = 0; i < this._nextPageButtonElements.length; i++){
+      this._nextPageButtonElements[i].addEventListener('click', this.setPage.bind(this, 'next'));
+    }
+
     this._searchButtonElement.addEventListener('click', handleSearchButtonClick.bind(this), true);
     this._searchFieldElement.addEventListener('input', handleSearchFieldChanges.bind(this), true);
     this._searchFieldElement.addEventListener('keypress', handleSearchFieldEnter.bind(this), true);
@@ -537,22 +554,31 @@ SOFTWARE.
 
     function handleSearchFieldChanges (event) {
 
-      this._debouncedSearchApiRequest(this._searchFieldElement.value);
-
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+      this._debouncedSearchApiRequest(this._searchFieldElement.value, searchFilters);
     }
 
     function handleSearchButtonClick (event) {
 
-      this._searchApiRequest(this._searchFieldElement.value);
-
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
+      this._searchApiRequest(this._searchFieldElement.value, searchFilters);
     }
 
     function handleSearchFieldEnter (event) {
 
+      searchFilters = {
+        yearMin: this._searchFilterYearMin.value,
+        yearMax: this._searchFilterYearMax.value
+      };
       if (event.which == 13 || event.keyCode == 13) {
-        this._searchApiRequest(this._searchFieldElement.value);
+        this._searchApiRequest(this._searchFieldElement.value, searchFilters);
       }
-
     }
 
     function handleSearchFieldEsc (event) {
@@ -560,7 +586,6 @@ SOFTWARE.
       if (event.which == 27 || event.keyCode == 27) {
         this.cancelPick();
       }
-
     }
 
   };
@@ -593,12 +618,15 @@ SOFTWARE.
    * @instance
    *
    */
-  PicaFinna.prototype._searchApiRequest = function _searchApiRequest (query, page) {
+  PicaFinna.prototype._searchApiRequest = function _searchApiRequest (query, filters, page) {
 
     var responseHandler = this._handleApiResponse.bind(this);
     var request;
     var url;
     var params;
+    var searchFilters = validateFilters(filters)
+
+    this._preHandleApiRequest();
 
     this._currentPage = page || 1;
 
@@ -614,13 +642,18 @@ SOFTWARE.
       params = {
         'filter[]': [
           'online_boolean:"1"',
-          'usage_rights_str_mv:usage_E'
+          'usage_rights_str_mv:usage_E',
+          '~format:"0/Image/"',
+          '~format:"0/PhysicalObject/"',
+          '~format:"0/WorkOfArt/"',
+          '~format:"0/Place/"'
         ],
         'field[]': [
           'title',
           'imageRights',
           'images',
           'authors',
+          'primaryAuthors',
           'buildings',
           'formats',
           'year',
@@ -633,6 +666,15 @@ SOFTWARE.
         'page': this._currentPage,
         'lookfor': query
       };
+
+      if (searchFilters.yearMin !== NaN && searchFilters.yearMax !== NaN){
+        yearFilterString = ('search_daterange_mv:"[' + 
+          searchFilters.yearMin + 
+          ' TO ' +
+          searchFilters.yearMax + ']"');
+        params['filter[]'].push(yearFilterString);
+      }
+
       url = PicaFinna.API_BASE_URL + '/v1/search?' + paramsToQueryString(params);
       if (this.useJsonp) {
         request = jsonpRequest(url, responseHandler);
@@ -652,7 +694,7 @@ SOFTWARE.
       this._updatePagination();
       this._setStatusText(this._localize('#introduction-text'));
     }
-
+    this._postHandleApiRequest(this._currentResultCount);
   };
 
   /**
@@ -665,7 +707,6 @@ SOFTWARE.
    *
    */
   PicaFinna.prototype._handleApiResponse = function _handleApiResponse (data) {
-
     var pageCount;
 
     this._setLoadingStatus(false);
@@ -673,18 +714,23 @@ SOFTWARE.
     if (data.records) {
       removeChildren(this._resultListElement);
       data.records.forEach(function handleRecord (record) {
-
-        this._resultListElement.appendChild(this._createResultItemDOM(record));
-
+        if (record.images != undefined && record.imageRights != undefined){
+          this._resultListElement.appendChild(this._createResultItemDOM(record));
+        }
+        else{
+          console.log("No image or imageRights in record, skipping..");
+        }
       }, this);
+      this._showPaginationElems();
     }
     else {
       this._setStatusText(this._localize('No images matching your query were found.'));
+      this._hidePaginationElems(data.resultCount);
     }
 
     this._currentResultCount = data.resultCount;
     this._updatePagination();
-
+    this.itemsLoadedCallback();
   };
 
   /**
@@ -742,6 +788,277 @@ SOFTWARE.
   };
 
   /**
+  * Initialize picafinna html elements
+  *
+  * @param {String} name of parent element (containerElement)
+  * @memberof Picafinna.prototype
+  * @private
+  * @instance
+  *
+  */
+  PicaFinna.prototype._getHtmlTemplate = function _getHtmlTemplate (elemName, pageUrl, title) {
+
+    pageUrl = pageUrl || '';
+    title = title || '';
+
+    if (elemName == 'picafinna-block') {
+      var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
+        '<div class="picafinna-wrapper">' +
+          '<div class="picafinna-header picafinna-wrapper-row">' +
+            '<div class="picafinna-wrapper">' +
+              '<div class="picafinna-wrapper-row-block">' +
+                '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
+                  '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                  '<div class="filters col-12">' +
+                    '<div class="years col-12">' +
+                      '<div class="years-heading">' +
+                        '<span class=""><strong>' + this._localize('Filter years') + '</strong></span>' +
+                      '</div>' +
+                      '<div class="years-wrapper">' +
+                        '<table class="picafinna-years">' +
+                          '<tr><th>' + this._localize('min') + '</th>' +
+                          '<td><input type="number" class="picafinna-year-min" value="0" /></td>' +
+                          '<tr><th>' + this._localize('max') + '</th>' +
+                          '<td><input type="number" class="picafinna-year-max" value="2018" /></td>' +
+                        '</table>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
+                  '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
+                  // '<button class="picafinna-btn picafinna-filters-btn btn">' + this._localize('Show filters') + '</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="picafinna-divider-horizontal"></div>' +
+          '<div class="picafinna-wrapper-row">' +
+            '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+              '<div class="picafinna-pagination-wrapper-block">' +
+                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text"></div>' +
+                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+              '</div>'+
+            '</div>' +
+          '</div>' +
+          '<div class="picafinna-results-block picafinna-wrapper-row-block">' +
+            '<div class="picafinna-wrapper-cell">' +
+              '<div class="picafinna-result-list-wrapper-block">' +
+                '<div class="picafinna-result-list-block">' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="picafinna-wrapper-row">' +
+            '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+              '<div class="picafinna-pagination-wrapper-block">' +
+                '<button class="picafinna-prev-page-btn btn">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text"></div>' +
+                '<button class="picafinna-next-page-btn btn">' + this._localize('Next page') + '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>');
+    }
+
+    else{
+      htmlElement = ('<div class="picafinna-overlay"></div>' +
+        '<div class="picafinna-outer-wrapper">' +
+          '<div class="picafinna-wrapper">' +
+            '<div class="picafinna-header picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper">' +
+                '<div class="picafinna-wrapper-row">' +
+                  '<div class="picafinna-logo-wrapper picafinna-wrapper-cell">' +
+                    '<a href="https://finna.fi/" target="_blank" class="picafinna-logo-link">' +
+                      '<img class="picafinna-logo-image" src="data:image/svg+xml,' + encodeURIComponent(PicaFinna.LOGO_SVG) + '" />' +
+                    '</a>' +
+                  '</div>' +
+                  '<div class="picafinna-search-field-wrapper picafinna-wrapper-cell">' +
+                    '<input class="picafinna-field picafinna-search-field" type="text" placeholder="' + this._localize('Search query...') + '" />' +
+                    '<div class="filters col-12">' +
+                      '<div class="years col-12">' +
+                        '<div class="years-heading">' +
+                          '<span class=""><strong>' + this._localize('Filter years') + '</strong></span>' +
+                        '</div>' +
+                        '<div class="years-wrapper">' +
+                          '<table class="picafinna-years">' +
+                            '<tr><th>' + this._localize('min') + '</th>' +
+                            '<td><input type="number" class="picafinna-year-min" value="0" /></td>' +
+                            '<tr><th>' + this._localize('max') + '</th>' +
+                            '<td><input type="number" class="picafinna-year-max" value="2018" /></td>' +
+                          '</table>' +
+                        '</div>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="picafinna-search-buttons-wrapper picafinna-wrapper-cell">' +
+                    '<button class="picafinna-btn picafinna-search-btn btn">' + this._localize('Search') + '</button>' +
+                    '<button class="picafinna-btn picafinna-cancel-btn btn">' + this._localize('Cancel') + '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-divider-horizontal"></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-wrapper-row">' +
+              '<div class="picafinna-pagination picafinna-wrapper-cell">' +
+                '<button class="picafinna-prev-page-btn btn" id="picafinna-prev-page-btn2">' + this._localize('Previous page') + '</button>' +
+                '<div class="picafinna-pagination-text" id="picafinna-pagination-text2"></div>' +
+                '<button class="picafinna-next-page-btn btn" id="picafinna-next-page-btn2">' + this._localize('Next page') + '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="picafinna-results picafinna-wrapper-row">' +
+              '<div class="picafinna-wrapper-cell">' +
+                '<div class="picafinna-result-list-wrapper">' +
+                  '<div class="picafinna-result-list">' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>');
+    }
+
+    return htmlElement;
+  };
+
+/**
+  * Initialize picafinna html elements
+  *
+  * @param {String} name of parent element (containerElement)
+  * @memberof Picafinna.prototype
+  * @private
+  * @instance
+  *
+  */
+  PicaFinna.prototype._getDetailHtmlTemplate = function _getDetailHtmlTemplate (pageUrl, title, year, license, shortLicense, summary, summaryPreview, collections, collectionsPreview, organization) {
+
+  if (summary == undefined || summaryPreview == undefined){
+    summaryPreview = ['']
+    summary = ['']
+  }
+
+  summary = replaceDoubleQuotes(summary);
+  summaryPreview = replaceDoubleQuotes(summaryPreview);
+
+  var htmlElement = ('<div class="picafinna-outer-wrapper-block">' +
+    '<a href="' + pageUrl + '" target="_blank" alt="' + title + '">' +
+      '<span class="result-item-detail-block result-item-title-block" title="' + title + ', ' + year + '">' + title + ', ' + year + '</span></a>'+
+    '<span class="result-item-detail-block result-item-license-block" title="' + license+ '">' + shortLicense + '</span>'+
+    '<span class="result-item-detail-block result-item-summary-block" title="' + summary + '">' + summaryPreview + '</span>'+
+    '<span class="result-item-detail-block result-item-collections-block" title="' + collections + '">' + collectionsPreview + '</span>'+
+    '<span class="result-item-detail-block result-item-organization-block" title="' + organization + '">' + organization + '</span>'+
+  '</div>');
+  return htmlElement;
+}
+
+/**
+  * Initialize picafinna html elements
+  *
+  * @param {String} name of parent element (containerElement)
+  * @memberof Picafinna.prototype
+  * @private
+  * @instance
+  *
+  */
+  PicaFinna.prototype._getResultItemWrapper = function _getResultItemWrapper (imageSummary, imageObj, summaryPreviewMax, collectionPreviewMax, imageUrl) {
+    var imageSummaryPreview = '';
+    var imageCollectionsPreview = '';
+    var collectionString = '';
+    var collectionStringPreview = '';
+    var resultAttributionElement = this.document.createElement('div');
+    var resultItemWrapper = this.document.createElement('div');
+    var resultItemElement = this.document.createElement('div');
+    var resultLinkElement = this.document.createElement('a');
+    var resultImageElement = this.document.createElement('img');
+
+      if (imageSummary != undefined){
+          imageSummaryPreview = imageSummary.toString();
+
+        if (imageSummaryPreview.length > summaryPreviewMax){
+          imageSummaryPreview = imageSummaryPreview.substring(0, summaryPreviewMax);
+          imageSummaryPreview = imageSummaryPreview.concat('...');
+        }
+        else {
+          imageSummaryPreview = imageSummary;
+        }
+      }
+
+      if (imageObj.collections != ""){
+        collectionString = imageObj.collections.join(", ");
+        if(collectionString.length > collectionPreviewMax){
+          collectionStringPreview = collectionString.substring(0, collectionPreviewMax);
+          collectionStringPreview = collectionStringPreview.concat('...');
+        }
+        else{
+          collectionStringPreview = collectionString;
+        }
+      }
+      resultAttributionElement.className = 'picafinna-result-attribution-block';
+      resultAttributionElement.insertAdjacentHTML('afterbegin', this._getDetailHtmlTemplate(imageObj.pageUrl, imageObj.title, imageObj.year, imageObj.licenseDescription, imageObj.shortLicense, imageSummary, imageSummaryPreview, collectionString, collectionStringPreview, imageObj.organization));
+
+      resultItemWrapper.className = 'picafinna-result-item-wrapper-block';
+      resultItemWrapper.appendChild(resultItemElement);
+
+      resultItemElement.className = 'picafinna-result-item-block';
+      resultItemElement.appendChild(resultLinkElement)
+      resultItemElement.appendChild(resultAttributionElement);
+      resultItemElement.style.backgroundImage = 'url(' + imageUrl.replace('(', '%28').replace(')', '%29').replace('&fullres=1', '&w=130&h=130') + ')';
+
+      resultLinkElement.appendChild(resultImageElement);
+      resultLinkElement.href = imageObj.pageUrl;
+      resultLinkElement.target = "_blank";
+
+      resultImageElement.className = 'picafinna-result-image';
+      resultImageElement.src = imageUrl.replace('&fullres=1', '&w=130&h=130');
+
+    return resultItemWrapper
+  }
+
+
+/**
+  * Prepare stuff before api request
+  */
+  PicaFinna.prototype._preHandleApiRequest = function _preHandleApiRequest (){
+    if (this.parentElement != document.body){
+      this._showPaginationElems();
+    }
+  };
+
+/**
+  * Process stuff after api request
+  */
+  PicaFinna.prototype._postHandleApiRequest = function _postHandleApiRequest (result_count){
+    if (this.parentElement != document.body){
+      if (result_count === 0){
+        this._hidePaginationElems();
+      }
+    }
+  };
+
+/**
+  * Hide pagination elements
+  */
+  PicaFinna.prototype._hidePaginationElems = function _hidePaginationElems () {
+    [].forEach.call(this._paginationElements, function (el) {
+      el.style.display = "none"; 
+    });
+  };
+
+/**
+  * Show pagination elements
+  */
+  PicaFinna.prototype._showPaginationElems = function _showPaginationElems () {
+    [].forEach.call(this._paginationElements, function (el) {
+      el.style.display = "block"; 
+    });
+  };
+  /**
    * Returns a function, that, as long as it continues to be invoked, will not
    * be triggered. The function will be called after it stops being called for
    * N milliseconds. If `immediate` is passed, trigger the function on the
@@ -769,6 +1086,39 @@ SOFTWARE.
         func.apply(context, args);
       }
     };
+  }
+
+// This function handles validating filters' values
+
+  function validateFilters(filters){
+    var validatedFilters = {yearMin: 0, yearMax: 0}
+    if (typeof filters === 'object' && filters.yearMin && filters.yearMax){
+      if (filters.yearMin){
+        validatedFilters.yearMin = validateYearFilter(filters.yearMin);
+      }
+      if (filters.yearMax){
+        validatedFilters.yearMax = validateYearFilter(filters.yearMax);
+      }
+    }
+    return validatedFilters;
+  }
+
+// This function checks if a year filter has correct number
+  function validateYearFilter(year){
+    currentYear = (new Date()).getFullYear();
+    validatedYear = parseInt(year);
+
+    if (validatedYear < 0){
+      validatedYear = NaN;
+      return validatedYear;
+    }
+    if (validatedYear > currentYear){
+      validatedYear = currentYear;
+      return validatedYear;
+    }
+    else{
+      return validatedYear;
+    }
   }
 
   function noop () {}
@@ -847,6 +1197,12 @@ SOFTWARE.
 
   }
 
+  function replaceDoubleQuotes(old_summary){
+    fixed_summary = old_summary[0].replace('"',"'");
+    return fixed_summary;
+  }
+
+
 
   PicaFinna.API_BASE_URL = 'https://api.finna.fi';
   PicaFinna.LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112.2284 136.12848" width="112.23" height="136.13" style="fill: #00a3ad"><path d="M78.53 29.68l-17.07-8.5c-.24-.13-2.44-1.18-5.4-1.18-1.8 0-3.52.4-5.08 1.18l-17.07 8.5c-.2.1-5.46 2.8-5.46 8.83v31.36c0 .25.07 6.14 5.47 8.83L51 87.2c.25.12 2.44 1.17 5.4 1.17 1.8 0 3.52-.4 5.08-1.18l17.07-8.5c.23-.12 5.47-2.8 5.47-8.84V38.5c0-.24-.06-6.13-5.47-8.82m1.24 40.18c0 3.38-3 4.98-3.12 5.04l-17.07 8.5c-.98.5-2.05.73-3.2.73-1.98 0-3.5-.72-3.5-.72l-10.33-5.13 10.27-5.14c.87 1.17 2.26 1.94 3.83 1.94 2.64 0 4.78-2.14 4.78-4.78V55.36l1.24-.6c.53.5 1.24.83 2.03.83 1.6 0 2.93-1.32 2.93-2.93 0-1.62-1.32-2.93-2.93-2.93-1.6 0-2.93 1.3-2.93 2.93v.04l-1.93.98c-.38.2-.62.58-.62 1v11.58c-.46-.3-.96-.5-1.5-.63v-22.3l6.9-3.46c.52.44 1.2.7 1.9.7 1.63 0 2.94-1.3 2.94-2.92 0-1.6-1.3-2.93-2.93-2.93-1.6 0-2.93 1.32-2.93 2.93 0 .07 0 .14.02.2l-7.18 3.62c-.88-1.03-2.18-1.68-3.64-1.68-2.64 0-4.78 2.14-4.78 4.78V59.7l-1.55.77c-.48-.34-1.06-.54-1.7-.54-1.6 0-2.92 1.3-2.92 2.92 0 1.62 1.3 2.93 2.92 2.93 1.62 0 2.93-1.3 2.93-2.93 0-.15 0-.3-.04-.46l1.98-1c.38-.2.62-.58.62-1V48.6c.45.3.96.5 1.5.62v21.9l-11.73 5.87-4.23-2.1c-3.03-1.5-3.12-4.9-3.12-5.04V38.5c0-3.38 3-4.98 3.12-5.03l17.07-8.5c.97-.5 2.05-.73 3.2-.73 1.97 0 3.5.72 3.5.72l17.08 8.5c3.03 1.5 3.12 4.92 3.12 5.05v31.36zm-23.12-2.04c1.37 0 2.47 1.1 2.47 2.47 0 1.35-1.1 2.46-2.47 2.46-1.36 0-2.47-1.1-2.47-2.47 0-1.38 1.1-2.48 2.47-2.48m-1.18-2.15c-.53.13-1.02.35-1.46.64V49.2c.54-.14 1.03-.35 1.47-.65v17.12zm-2.67-18.6c-1.38 0-2.5-1.1-2.5-2.5 0-1.37 1.12-2.5 2.5-2.5s2.5 1.13 2.5 2.5c0 1.4-1.12 2.5-2.5 2.5m10.53 5.6c0-.76.62-1.37 1.37-1.37.75 0 1.37.6 1.37 1.37 0 .75-.62 1.36-1.37 1.36-.75 0-1.37-.6-1.37-1.36m1.84-15.02c0-.75.6-1.36 1.36-1.36.76 0 1.37.6 1.37 1.35 0 .76-.62 1.37-1.37 1.37-.75 0-1.36-.6-1.36-1.37m-19.03 25.2c0 .76-.6 1.37-1.37 1.37-.75 0-1.36-.6-1.36-1.37 0-.75.62-1.36 1.37-1.36.76 0 1.37.6 1.37 1.35" /><path d="M88.3 109.4h-3.06c.5-1.95 1.03-4.14 1.53-6 .5 1.86 1.02 4.05 1.52 6m3.88 5l-4.2-16.5c-.13-.6-.6-1-1.2-1-.62 0-1.1.4-1.22 1l-4.2 16.5c-.2.76.2 1.47.86 1.66.7.2 1.36-.22 1.55-.93.08-.23.13-.52.2-.83l.56-2.16H89c.2.88.42 1.62.56 2.16.07.3.12.6.2.83.2.7.85 1.13 1.56.93.66-.2 1.05-.9.86-1.67m-19.05 1.7c.55-.15.97-.7.97-1.34v-16.5c0-.76-.55-1.36-1.27-1.36-.7 0-1.26.6-1.26 1.37v10.52c-1.13-2.5-2.34-5.25-3.3-7.4-.6-1.3-1.14-2.5-1.67-3.73-.28-.57-.8-.88-1.4-.74-.62.14-1 .68-1 1.34v16.5c0 .75.57 1.35 1.28 1.35.7 0 1.26-.6 1.26-1.36v-10.52c1.08 2.47 2.34 5.23 3.3 7.4.6 1.27 1.14 2.5 1.67 3.7.24.58.82.9 1.43.75m-18.25 0c.55-.15.97-.7.97-1.34v-16.5c0-.76-.55-1.36-1.26-1.36-.7 0-1.27.6-1.27 1.37v10.52c-1.13-2.5-2.34-5.25-3.3-7.4-.6-1.3-1.14-2.5-1.67-3.73-.28-.57-.8-.88-1.42-.74-.6.14-.97.68-.97 1.34v16.5c0 .75.55 1.35 1.26 1.35.7 0 1.26-.6 1.26-1.36v-10.52c1.07 2.47 2.34 5.23 3.3 7.4.6 1.27 1.14 2.5 1.66 3.7.24.58.82.9 1.42.75m-18.53.02c.7 0 1.26-.6 1.26-1.36v-16.5c0-.76-.54-1.36-1.25-1.36-.7 0-1.26.6-1.26 1.37v16.5c0 .75.54 1.35 1.25 1.35m-15.1-.1c.72 0 1.27-.6 1.27-1.38v-7.05H26c.7 0 1.26-.6 1.26-1.37 0-.77-.56-1.37-1.27-1.37H22.5v-5.12h4c.7 0 1.26-.6 1.26-1.36 0-.77-.55-1.37-1.26-1.37h-5.26c-.7 0-1.26.6-1.26 1.38v16.26c0 .77.55 1.37 1.26 1.37" /></svg>';
@@ -861,8 +1217,12 @@ SOFTWARE.
     'No search results': 'No search results',
     'No images matching your query were found.': 'No images matching your query were found.',
     'Search query...': 'Search Finna for word...',
-    '#introduction-text': 'Find the relevant images from Finna materials provided by Finnish libraries, archives and museums.'
+    '#introduction-text': 'Find the relevant images from Finna materials provided by Finnish libraries, archives and museums.',
+    'Filter years': 'Filter years',
+    'min': 'Start year',
+    'max': 'End year',
   };
+
   PicaFinna.locale.fi = {
     'Search': 'Hae',
     'Cancel': 'Peruuta',
@@ -872,7 +1232,10 @@ SOFTWARE.
     'No search results': 'Ei hakutuloksia',
     'No images matching your query were found.': 'Hakua vastaavia kuvia ei l\u00F6ytynyt.',
     'Search query...': 'Etsi hakusanalla Finnasta...',
-    '#introduction-text': 'L\u00F6yd\u00E4 tarvitsemasi kuvat Finnan kuva-aineistoista. K\u00E4ytett\u00E4viss\u00E4si ovat Suomen museoiden, kirjastojen ja arkistojen aarteet!'
+    '#introduction-text': 'L\u00F6yd\u00E4 tarvitsemasi kuvat Finnan kuva-aineistoista. K\u00E4ytett\u00E4viss\u00E4si ovat Suomen museoiden, kirjastojen ja arkistojen aarteet!',
+    'Filter years': 'Suodata vuosiluvulla',
+    'min': 'Alkaen',
+    'max': 'P\u00E4\u00E4ttyen',
   };
 
 

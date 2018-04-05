@@ -278,3 +278,149 @@
   width: auto;
   height: auto;
 }
+
+
+
+
+/* Picafinna as block element */
+.picafinna-block {
+  position: static;
+  min-width: 400px;
+  min-height: 300px;
+}
+.picafinna-outer-wrapper-block {
+  background: none;
+  box-shadow: none;
+  margin: auto;
+  max-width: 800px;
+  max-height: auto;
+  width: 90%;
+  height: 90%;
+}
+
+.picafinna-wrapper-row-block{
+  text-align: center;
+  display: block;
+}
+
+.picafinna-pagination-wrapper-block{
+  text-align: center;
+}
+.picafinna-results-block {
+  height: 100%;
+  transition: opacity .5s;
+}
+.picafinna-result-list-wrapper-block {
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.picafinna-result-list-block {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 15px 0 0 15px;
+  overflow: auto;
+}
+
+.picafinna-outer-wrapper-block .picafinna-search-field-wrapper{
+  padding-left: 15px;
+}
+
+.picafinna-result-item-wrapper-block {
+  border: 1px solid gray;
+  height: 280px;
+  width: 132px;
+  margin: 0 15px 15px 0;
+  float: left;
+  padding: 0;
+}
+
+.picafinna-result-item-block {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.picafinna-result-attribution-block {
+  width: 130px;
+  height: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 6pt;
+}
+
+.picafinna-result-item-block > a > img{
+  width: 100%;
+  height: 100%;
+
+}
+
+.result-item-detail-block{
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  width: 100%;
+  display:block;
+  color: #333;
+}
+
+.result-item-title-block{
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  color: teal;
+  padding-top: 2px;
+  line-height: 14px;
+}
+
+.result-item-license-block {
+  font-size: 0.6rem;
+  width: 60%;
+  margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  padding-bottom: 2px;
+}
+
+.result-item-organization-block {
+  font-size: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.result-item-summary-block {
+  font-size: 0.6rem;
+  height: 50px;
+  overflow: hidden;
+  text-transform: lowercase;
+
+}
+.result-item-collections-block {
+  font-size: 0.6rem;
+  height: 38px;
+  font-style: italic;
+  color: #888;
+  text-transform: lowercase;
+}
+
+.result-item-detail-block::first-letter {
+  text-transform: capitalize;
+}
+
+.picafinna-year{
+  float: left;
+}
+.picafinna-filters-btn{
+  margin-top: 5px;
+}
+
+.picafinna-search-btn, .picafinna-filters-btn{
+  border: 2px solid white;
+}
+
+.picafinna-search-btn:hover, .picafinna-filters-btn:hover{
+  border: 2px solid #ddd;
+}

@@ -41,6 +41,26 @@ picker.pickImage(function handleResult (imageObj) {
 });
 ```
 
+If you want to use Picafinna as block element, you can pass the parentElement.
+
+```javascript
+var picker = new PicaFinna({
+  parentElement: document.getElementById('your-parent-element'),
+  summaryPreviewMax: 60,
+  collectionPreviewMax: 20,
+});
+
+//Modifying preview lengths may need css changes
+
+// Prevent parent element from scrolling
+document.body.style.overflow = 'hidden';
+
+picker.pickImage(function handleResult (imageObj) {
+  console.log(imageObj);
+  document.body.style.overflow = '';
+});
+```
+
 ## Options
 
 * **`zIndex`** &nbsp;&mdash;&nbsp; *Number*
@@ -56,6 +76,7 @@ picker.pickImage(function handleResult (imageObj) {
 * **`parentElement`** &nbsp;&mdash;&nbsp; *Element*
   * Default value: `document.body`.
   * Override the parent element for the picker. Can be useful if you are implementing a custom inline picker.
+  * Modifying this will make picafinna block element instead of modal
 * **`documentOverride`** &nbsp;&mdash;&nbsp; *Document*
   * Default value: `document`.
   * Override the document object for the picker.
@@ -69,7 +90,17 @@ picker.pickImage(function handleResult (imageObj) {
 * **`useJsonp`** &nbsp;&mdash;&nbsp; *Boolean*
   * Default value: `true`.
   * If `true` JSONP is used instead of `XMLHttpRequest`. Currently the API does not support CORS.
-
+* **`summaryPreviewMax`** &nbsp;&mdash;&nbsp; *Number*
+  * Default value: `40`
+  * Defines the length of summary text in picafinna block search results
+  * Works only with block element picafinna
+* **`collectionPreviewMax`** &nbsp;&mdash;&nbsp; *Number*
+  * Default value: `20`
+  * Defines the length of collection text in search results
+  * Works only with block element picafinna
+* ** `ìtemsLoadedCallback` ** &nbsp;&mdash;&nbsp; *function*
+  * By default calls function: `noop` that does nothing.
+  * The passed function will be executed everytime new items are loaded in finna.
 
 ## Methods
 
